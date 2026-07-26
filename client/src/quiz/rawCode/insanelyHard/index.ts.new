@@ -1,0 +1,176 @@
+import type { RawCodingQuestionData } from '../../RawCodeManager'
+
+const data: RawCodingQuestionData[] = [
+  {
+    id: 'raw-coding-insanely-hard-kth-largest-0001',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Kth Largest Element In Array (Heap Pattern)\n\n**Problem:** Find the kth largest value in an unsorted array.\n\n**Example:** [3,2,1,5,6,4] with k=2. Sorted descending is [6,5,4,3,2,1], so the 2nd largest is 5.\n\n**Key Insight:** You don\'t need the entire sorted array—just maintain the k largest values seen so far. A min-heap of size k keeps the smallest among the k largest as its root, making it easy to compare new values and replace.\n\n**Algorithm:**\n1. Create a min-heap\n2. For each number in the array:\n   - If heap size < k, add the number\n   - Else if the number > heap root, pop the root and add the number\n3. Return the heap root (the kth largest)\n\n**Why It Works:** The min-heap\'s root is always the boundary between "in top-k" and "out of top-k". Any number smaller than the root cannot make it into the top-k, so we skip it. Any larger number evicts the current minimum from the top-k group.\n\n**Time Complexity:** O(n log k). Each insertion is log k, and we do this n times.\n\n**Implement `solve(input)` where `input = { nums: number[], k: number }`. Return the kth largest value.**',
+    correctExplanation:
+      'Use a min-heap of size k. Step through each number: if the heap has fewer than k items, push it; otherwise, compare it to the heap root—if larger, pop the root and push the new number. The heap root is always the k-th largest. Walkthrough [3,2,1,5,6,4] with k=2: heap starts empty, add 3 and 2 → [2,3] (min-heap property), min=2. Next 1 is smaller than min-2, skip. Next 5 > 2, pop 2 and add 5 → [3,5]. Next 6 > 3, pop 3 and add 6 → [5,6], min=5. Next 4 is not > 5, skip. Final answer is 5.',
+    tests: [
+      { input: [{ nums: [3, 2, 1, 5, 6, 4], k: 2 }], expected: 5 },
+      { input: [{ nums: [3, 2, 3, 1, 2, 4, 5, 5, 6], k: 4 }], expected: 4 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-product-except-self-0002',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Product Of Array Except Self (Prefix/Suffix Pattern)\n\n**Problem:** For each position i, compute the product of all array values except the one at position i. Do NOT use division. Handle zeros correctly.\n\n**Example:** [1,2,3,4] → [24,12,8,6] (position 0 sees 2×3×4=24, position 1 sees 1×3×4=12, etc.)\n\n**Challenge:** You cannot divide because (a) it\'s forbidden in the rules, and (b) if there\'s a zero, you\'d divide by zero.\n\n**Key Insight:** Decompose the product into two parts:\n- **Prefix**: all values to the LEFT of position i\n- **Suffix**: all values to the RIGHT of position i\n- Answer[i] = Prefix[i] × Suffix[i]\n\n**Algorithm:**\n1. Build prefix array: prefix[i] = product of all values left of i\n2. Build suffix array: suffix[i] = product of all values right of i\n3. For each i, compute result[i] = prefix[i] × suffix[i]\n\n**Example Walkthrough:** [1,2,3,4]\n- prefix = [1, 1, 1×2=2, 1×2×3=6]\n- suffix = [2×3×4=24, 3×4=12, 4, 1]\n- result[0] = 1 × 24 = 24 ✓\n- result[1] = 1 × 12 = 12 ✓\n\n**Space Optimization:** You can compute left-to-right in the result array for prefixes, then right-to-left for suffixes, avoiding the separate prefix array.\n\n**Implement `solve(input)` where `input = number[]`. Return array of products excluding each position.**',
+    correctExplanation:
+      'Compute a prefix product array where prefix[i] holds the product of everything before index i, and a suffix array where suffix[i] holds the product of everything after index i. Multiply them: result[i] = prefix[i] × suffix[i]. This naturally handles zeros: any zero only affects the ranges that include it, leaving other positions with correct products. Example: [-1,1,0,-3,3]. Position 2 (the zero) gets prefix[2]×suffix[2]=(−1)×(−3)=3 multiplied by 0? No—we need both sides of the zero. The zero makes result[0]=0, result[1]=0, result[2]=(−1)×1×(−3)×3=9, result[3]=0, result[4]=0.',
+    tests: [
+      { input: [[1, 2, 3, 4]], expected: [24, 12, 8, 6] },
+      { input: [[-1, 1, 0, -3, 3]], expected: [0, 0, 9, 0, 0] },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-trapping-rain-water-0003',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Trapping Rain Water (Two-Pointer + Greedy)\n\n**Problem:** Given elevation heights, compute how much water is trapped after rain (vertical bars only).\n\n**Example:** [0,1,0,2,1,0,1,3,2,1,2,1]. Visualization:\n```\n        |\n      | | |\n    | | | | |\n  | | | | | | | |\n  0 1 0 2 1 0 1 3 2 1 2 1\n    ^ ^ ^ ^ ^ ^\n```\nWater fills the valleys between peaks, totaling 6 units.\n\n**Key Insight:** Water at position i is bounded by min(maxLeft, maxRight), which is the shorter of the tallest walls to its left and right. That\'s the "ceiling" height at position i.\n\n**Algorithm (Two-Pointer):**\n1. Use left and right pointers at both ends\n2. Track maxLeft (highest seen from left) and maxRight (highest seen from right)\n3. Move whichever pointer has the smaller maximum:\n   - If maxLeft < maxRight, the limiting height at left is maxLeft regardless of what\'s on the right\n   - Water at left = max(0, maxLeft - height[left])\n4. Continue until pointers meet\n\n**Why This Works:** At any position, water is limited by the shorter bounding wall. By always processing the shorter side, we know that side\'s answer definitively without waiting to process the other side.\n\n**Example Step:** [0,1,0,2,1,0,1,3,2,1,2,1]\n- left=0 (height 0), right=11 (height 1), maxLeft=0, maxRight=1\n- maxLeft < maxRight, so process left: water[0] = 0 (height is 0, max is 0)\n- left=1 (height 1), maxLeft=1, water[1]=0 (height matches max)\n- left=2 (height 0), maxLeft=1, water[2]=1−0=1 ✓\n\n**Time Complexity:** O(n) single pass. Space: O(1).\n\n**Implement `solve(input)` where `input = number[]` elevations. Return total trapped water.**',
+    correctExplanation:
+      'Use two pointers and track the maximum height seen so far from each side. Water at each position is determined by the minimum of those two maxima minus the current height. Move the pointer on the shorter side inward, because that side\'s constraint is definitive—the other side has a taller wall, so the water level is set by the shorter one. Continue until pointers meet.',
+    tests: [
+      { input: [[0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1]], expected: 6 },
+      { input: [[4, 2, 0, 3, 2, 5]], expected: 9 },
+      { input: [[1, 2, 3]], expected: 0 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-median-two-sorted-0004',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Median Of Two Sorted Arrays (Binary Search)\n\n**Problem:** Find the median of two sorted arrays efficiently (O(log(min(m,n)))).\n\n**Example:** [1,3] and [2] combined are [1,2,3] → median = 2.\n\n**Example 2:** [1,2] and [3,4] combined are [1,2,3,4] → median = (2+3)/2 = 2.5.\n\n**Key Challenge:** You cannot simply merge (that\'s O(m+n)). You need binary search.\n\n**Key Insight:** Instead of merging, find a "partition" of both arrays such that:\n- All values on the left of the partition ≤ all values on the right\n- Total left side has the same count as total right side (or differs by 1)\n\nOnce the partition is correct, the median is either:\n- The max of the left side (if total length is odd), or\n- Average of max-left and min-right (if total length is even)\n\n**Algorithm:**\n1. Binary search on the smaller array\'s partition point\n2. For each partition point in nums1, calculate the corresponding partition point in nums2 such that total-left ≈ total-right\n3. Check if the partition is valid: all left values ≤ all right values\n4. If valid, calculate median; if left-max > right-min, search left; otherwise search right\n\n**Example Walkthrough:** [1,3] and [2], total length = 3 (odd, so median is the middle element)\n- Partition after 1 element on each side: left = [1,2], right = [3]\n- Left max = 2, right min = 3. Valid! Median = 2.\n\n**Time Complexity:** O(log(min(m,n))).\n\n**Implement `solve(input)` where `input = { nums1: number[], nums2: number[] }`. Return the median as a number.**',
+    correctExplanation:
+      'Binary search the partition point in the smaller array. For each candidate partition, compute the matching partition in the larger array such that the total left and right sides balance. Check if the partition is valid by verifying all left values ≤ all right values. The median emerges from the boundary values of this partition.',
+    tests: [
+      { input: [{ nums1: [1, 3], nums2: [2] }], expected: 2 },
+      { input: [{ nums1: [1, 2], nums2: [3, 4] }], expected: 2.5 },
+      { input: [{ nums1: [0, 0], nums2: [0, 0] }], expected: 0 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-permutation-in-string-0005',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Permutation In String (Sliding Window + Character Count)\n\n**Problem:** Determine if any permutation of s1 appears as a substring in s2.\n\n**Example:** s1 = "ab", s2 = "eidbaooo". The substring "ba" (in s2) is a permutation of "ab", so return true.\n\n**Key Insight:** A permutation has the same character frequencies as the original. You don\'t need the exact order, just the right count of each character.\n\n**Algorithm (Sliding Window):**\n1. Count the frequency of each character in s1\n2. Use a sliding window of length len(s1) on s2\n3. For each window:\n   - Count the characters in the window\n   - If counts match s1\'s counts, return true immediately\n   - Otherwise, slide the window by removing the leftmost char and adding the next char\n4. If no match found, return false\n\n**Optimization:** Instead of recomputing counts from scratch, maintain a running count:\n- When moving the window right: increment the new character\n- When moving the window left: decrement the old character\n- Compare counts in O(1) by tracking mismatches\n\n**Example Walkthrough:** s1 = "ab" (target: {a:1, b:1}), s2 = "eidbaooo"\n- Window [e,i]: {e:1,i:1} ✗\n- Window [i,d]: {i:1,d:1} ✗\n- Window [d,b]: {d:1,b:1} ✗\n- Window [b,a]: {b:1,a:1} ✓ Match!\n\n**Time Complexity:** O(n) where n = len(s2).\n\n**Implement `solve(input)` where `input = { s1: string, s2: string }`. Return `true` if any permutation of s1 is a substring of s2.**',
+    correctExplanation:
+      'Count the character frequencies in s1. Then slide a window of that length across s2, maintaining character counts inside the window. When the window\'s counts match s1\'s counts exactly, a permutation exists. Use an optimized sliding window that incrementally updates counts as the window moves.',
+    tests: [
+      { input: [{ s1: 'ab', s2: 'eidbaooo' }], expected: true },
+      { input: [{ s1: 'ab', s2: 'eidboaoo' }], expected: false },
+      { input: [{ s1: 'adc', s2: 'dcda' }], expected: true },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-maximal-rectangle-0006',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Maximal Rectangle (Histogram + Dynamic Programming)\n\n**Problem:** Given a matrix of 0s and 1s, find the largest rectangular area containing only 1s.\n\n**Example:**\n```\n1 0 1 0 0\n1 0 1 1 1\n1 1 1 1 1\n1 0 0 1 0\n```\nLargest rectangle is 6 (3 rows × 2 cols in columns 2-3, rows 1-2).\n\n**Key Insight:** Convert each row into a histogram where the height represents consecutive 1s above (including current). Then solve "largest rectangle in histogram" for each row.\n\n**Algorithm:**\n1. For each row, compute heights: height[col] = 0 if matrix[row][col]='0', else height[col]++\n2. For each row\'s histogram, find the largest rectangle (use monotonic stack)\n3. Return the maximum area found\n\n**Largest Rectangle In Histogram (Monotonic Stack):**\n- Use a stack to track bar indices in increasing height order\n- For each new bar:\n  - If taller than stack top, push it\n  - If shorter, pop bars and compute area for each popped bar\n  - Area = height[popped] × (currentIndex − leftBoundary)\n\n**Example Walkthrough:**\n```\nRow 0: heights = [1,0,1,0,0] → max area = 1\nRow 1: heights = [2,0,2,1,1] → max area = 2\nRow 2: heights = [3,1,3,2,2] → max area = 6 (height=3, width=2 at cols 2-3)\nRow 3: heights = [4,0,0,3,0] → max area = 4\nFinal answer: 6\n```\n\n**Time Complexity:** O(rows × cols) for height computation + O(cols) per row for histogram = O(rows × cols).\n\n**Implement `solve(input)` where `input = string[][]` matrix of "0"/"1". Return the area of the largest rectangle.**',
+    correctExplanation:
+      'Treat each row as the base of a histogram where height is the number of consecutive 1s above. For each histogram, solve the largest-rectangle-in-histogram problem using a monotonic stack. Push bar indices while the stack is increasing; when you encounter a shorter bar, pop and compute rectangles, then push the current bar. The area of a popped bar extends from the element now at the stack top (or the left boundary) to the current index.',
+    tests: [
+      {
+        input: [[['1', '0', '1', '0', '0'], ['1', '0', '1', '1', '1'], ['1', '1', '1', '1', '1'], ['1', '0', '0', '1', '0']]],
+        expected: 6,
+      },
+      { input: [[['0']]], expected: 0 },
+      { input: [[['1']]], expected: 1 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-merge-k-sorted-arrays-0007',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Merge K Sorted Arrays (Heap Pattern)\n\n**Problem:** Merge k sorted arrays into one sorted array efficiently.\n\n**Example:** [[1,4,5],[1,3,4],[2,6]] → [1,1,2,3,4,4,5,6].\n\n**Naive Approach:** Concatenate and sort—O(nk log(nk)). Too slow.\n\n**Better Approach:** Use a min-heap to always extract the globally smallest element next.\n\n**Algorithm:**\n1. Create a min-heap and populate it with the first element from each array (also track which array and next index)\n2. While the heap is non-empty:\n   - Pop the minimum element and append to result\n   - If that array has more elements, push the next element from that array\n3. The result is built in order\n\n**Why Efficient:** At any moment, the heap contains only k elements (one per array), not all nk elements. Each pop-push is O(log k), done nk times, giving O(nk log k) total.\n\n**Example Walkthrough:** [[1,4,5],[1,3,4],[2,6]]\n- Heap: [(1, arr0, idx0), (1, arr1, idx0), (2, arr2, idx0)]\n- Pop (1, arr0, idx0), push (4, arr0, idx1) → result=[1]\n- Pop (1, arr1, idx0), push (3, arr1, idx1) → result=[1,1]\n- Pop (2, arr2, idx0), push (6, arr2, idx1) → result=[1,1,2]\n- Continue...\n\n**Edge Cases:** Empty arrays in the list are handled naturally (never added to heap).\n\n**Implement `solve(input)` where `input = number[][]` k sorted arrays. Return merged sorted array.**',
+    correctExplanation:
+      'Use a min-heap storing one element from each array along with its source array and next index. Repeatedly pop the smallest, append it to the result, and push the next element from that array (if it exists). This keeps only k elements in the heap at a time, making each operation O(log k).',
+    tests: [
+      { input: [[[1, 4, 5], [1, 3, 4], [2, 6]]], expected: [1, 1, 2, 3, 4, 4, 5, 6] },
+      { input: [[[], [2], []]], expected: [2] },
+      { input: [[[]]], expected: [] },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-remove-k-digits-0008',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Remove K Digits (Greedy + Monotonic Stack)\n\n**Problem:** Remove exactly k digits to produce the smallest possible non-negative number (as a string).\n\n**Example:** num = "1432219", k = 3 → answer = "1219".\n- Remove 4 (larger than 3), 3 (larger than 2), 2 (larger than 1), leaving "1219"\n\n**Key Insight:** A number is smaller when its leftmost digits are smaller. Use a greedy approach:\n- Keep digits left-to-right only if they don\'t exceed the next digit\n- If current digit > next digit, drop the current digit and try the one before it\n- Use a monotonic increasing stack to efficiently manage this\n\n**Algorithm:**\n1. Use a stack to build digits in increasing order\n2. For each digit in the input:\n   - While k > 0 and stack is not empty and top > current digit, pop (and decrement k)\n   - Push current digit\n3. If k > 0 remaining, remove k digits from the end (largest digits)\n4. Strip leading zeros\n5. Return "0" if the result is empty\n\n**Example Walkthrough:** "1432219" with k=3\n- Digit 1: stack=[1], k=3\n- Digit 4: 4>1, so stack=[1,4], k=3\n- Digit 3: 3<4, pop 4 (k=2), 3>1, stack=[1,3]\n- Digit 2: 2<3, pop 3 (k=1), 2>1, stack=[1,2]\n- Digit 2: 2≤2, stack=[1,2,2]\n- Digit 1: 1<2, pop 2 (k=0), stack=[1,2,1]\n- Digit 9: k=0, stack=[1,2,1,9]\n- Final: "1219" ✓\n\n**Edge Case:** "10200" with k=1\n- Stack builds to [1,0,2,0,0], then we never pop because k is already 0\n- Strip leading zeros (none), result = "10200"? No! We remove k=1 from the right: "10200"[:-1]="1020". Actually, we remove the FIRST digit > next, so at digit 1: 1>0, pop 1 (k=0), stack=[0,2,0,0]. Result "0200" → strip leading zeros → "200" ✓\n\n**Implement `solve(input)` where `input = { num: string, k: number }`. Return the smallest number string after removing k digits.**',
+    correctExplanation:
+      'Use a monotonic increasing stack. For each digit, pop larger digits from the stack while k > 0, because removing a larger earlier digit makes the final number smaller. After processing all digits, if k > 0, remove k digits from the end. Strip leading zeros to handle cases like "0123" → "123". If the result is empty, return "0".',
+    tests: [
+      { input: [{ num: '1432219', k: 3 }], expected: '1219' },
+      { input: [{ num: '10200', k: 1 }], expected: '200' },
+      { input: [{ num: '10', k: 2 }], expected: '0' },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-sliding-window-maximum-0009',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Sliding Window Maximum (Deque Pattern)\n\n**Problem:** For each window of size k in an array, return the maximum value in that window.\n\n**Example:** nums = [1,3,-1,-3,5,3,6,7], k = 3\n- Windows: [1,3,-1] → max=3, [3,-1,-3] → max=3, [-1,-3,5] → max=5, etc.\n- Answer: [3,3,5,5,6,7]\n\n**Naive Approach:** For each window, scan k elements—O(nk). Too slow.\n\n**Efficient Approach:** Use a deque to track potentially useful indices in decreasing order of their values.\n\n**Algorithm:**\n1. Maintain a deque of indices (not values directly)\n2. For each new index:\n   - Remove indices from the back of the deque if their values ≤ current value (they can never be max while current is in range)\n   - Remove indices from the front if they\'ve slid out of the window\n   - Append the current index\n   - If we\'ve processed at least k elements, the deque front is the max index for this window\n3. Return the maximum values\n\n**Why Efficient:** Each index is added once and removed at most once, so O(n) total.\n\n**Example Walkthrough:** [1,3,-1,-3,5,3,6,7], k=3\n- i=0: deque=[0], not yet k elements\n- i=1: 3>1, so remove 0, deque=[1]\n- i=2: -1<3, so add 2, deque=[1,2]. Now k=3 elements, max=nums[1]=3 ✓\n- i=3: -3<-1, so add 3, deque=[1,2,3]. Window [3,-1,-3], max=nums[1]=3 ✓\n- i=4: 5>-3, remove 3, 5>-1, remove 2, 5>3, remove 1, deque=[4]. Window [-1,-3,5], max=nums[4]=5 ✓\n\n**Implement `solve(input)` where `input = { nums: number[], k: number }`. Return array of maximum values for each window.**',
+    correctExplanation:
+      'Use a deque storing indices in decreasing order of their values. Before adding a new index, remove indices from the back whose values are ≤ the new value (they\'re dominated). Remove indices from the front that have slid past the window. The front index is always the maximum in the current window. This maintains the invariant that the deque represents potential maxima in a useful order.',
+    tests: [
+      { input: [{ nums: [1, 3, -1, -3, 5, 3, 6, 7], k: 3 }], expected: [3, 3, 5, 5, 6, 7] },
+      { input: [{ nums: [1], k: 1 }], expected: [1] },
+      { input: [{ nums: [9, 8, 7, 6], k: 2 }], expected: [9, 8, 7] },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-find-duplicate-number-0010',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Find The Duplicate Number (Floyd Cycle Detection)\n\n**Problem:** An array of length n+1 contains values in [1,n] with exactly one value repeated at least once. Find the duplicate (no sorting, O(1) space, O(n) time).\n\n**Example:** [1,3,4,2,2]. The value 2 appears twice.\n\n**Brilliant Insight:** Treat the array as an implicit linked list:\n- Index i has a "next pointer" to index array[i]\n- Since values are in [1,n] and the array has n+1 elements, a cycle must exist\n- The duplicate value is where the cycle begins\n\n**Floyd\'s Cycle Detection (Two Phases):**\n1. **Phase 1:** Move slow pointer by 1 and fast pointer by 2 until they meet (they will, inside the cycle)\n2. **Phase 2:** Reset one pointer to start, move both by 1 step until they meet again. This meeting point is the cycle entrance (the duplicate).\n\n**Why Phase 2 Works:** When slow and fast meet in a cycle, slow has traveled d + c steps (where d = distance to cycle, c = steps inside cycle), and fast has traveled 2d + c steps. They meet when d + c ≡ 2(d) + c (mod cycle length), which simplifies to d ≡ (cycle length − c). Moving from the meeting point to the cycle entrance requires exactly d steps. So resetting one pointer to the start and advancing both by 1 guarantees they meet at the entrance.\n\n**Example:** [1,3,4,2,2]\n- Index chain: 0→1→3→2→4→2→4→... (forms a loop at 2→4→2)\n- Phase 1: slow=0,1,2; fast=0,3,4. Slow and fast meet inside cycle.\n- Phase 2: Reset slow to 0, advance both by 1 until they meet at 2 (the entrance/duplicate) ✓\n\n**Implement `solve(input)` where `input = number[]` array of length n+1 with values in [1,n]. Return the duplicate value.**',
+    correctExplanation:
+      'Use Floyd cycle detection. Treat the array as a linked list where array[i] is a pointer to array[array[i]]. Initialize slow and fast pointers at the start; move slow by 1 and fast by 2 until they meet inside a cycle. Then reset slow to start and move both by 1 until they meet again; that meeting point is the cycle entrance, which corresponds to the duplicate value.',
+    tests: [
+      { input: [[1, 3, 4, 2, 2]], expected: 2 },
+      { input: [[3, 1, 3, 4, 2]], expected: 3 },
+      { input: [[2, 2, 2, 2, 2]], expected: 2 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-edit-distance-0011',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Edit Distance (Levenshtein Distance | Dynamic Programming)\n\n**Problem:** Find the minimum number of single-character edits (insert, delete, replace) to transform word1 into word2.\n\n**Example:** "horse" → "ros":\n- Replace h with r: "rorse"\n- Delete r: "rose"\n- Delete e: "ros" ✓\n- Total: 3 edits\n\n**Dynamic Programming Approach:**\n- dp[i][j] = minimum edits to transform word1[0:i] into word2[0:j]\n- Base cases:\n  - dp[i][0] = i (delete all i characters)\n  - dp[0][j] = j (insert all j characters)\n- Recurrence:\n  - If word1[i-1] == word2[j-1]: dp[i][j] = dp[i-1][j-1] (no edit needed)\n  - Else: dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])\n    - dp[i-1][j] + 1: delete from word1\n    - dp[i][j-1] + 1: insert into word1\n    - dp[i-1][j-1] + 1: replace\n\n**Example DP Table:** "horse" (length 5) to "ros" (length 3)\n```\n    \"\" r  o  s\n\"\" 0  1  2  3\nh  1  1  2  3\no  2  2  1  2\nr  3  2  2  2\ns  4  3  3  2\ne  5  4  4  3\n```\nAnswer: dp[5][3] = 3 ✓\n\n**How to Read the Table:**\n- dp[1][1]: "h" → "r" requires 1 replace\n- dp[2][2]: "ho" → "ro" requires 1 replace (h→r) + keep o = 1\n- dp[5][3]: "horse" → "ros" requires 3 edits\n\n**Implement `solve(input)` where `input = { word1: string, word2: string }`. Return the minimum edit distance.**',
+    correctExplanation:
+      'Build a DP table where dp[i][j] represents the minimum edits needed to transform the first i characters of word1 into the first j characters of word2. If characters match, copy the diagonal value. If they don\'t, take the minimum of three options (delete, insert, replace) and add 1. The answer is dp[m][n] where m and n are the lengths of the words.',
+    tests: [
+      { input: [{ word1: 'horse', word2: 'ros' }], expected: 3 },
+      { input: [{ word1: 'intention', word2: 'execution' }], expected: 5 },
+      { input: [{ word1: '', word2: 'abc' }], expected: 3 },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-valid-anagram-0012',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Valid Anagram (Character Frequency Matching)\n\n**Problem:** Determine if two strings are anagrams (same characters, different order).\n\n**Example:** "anagram" and "nagaram" are anagrams.\n\n**Key Insight:** Two strings are anagrams if and only if:\n1. They have the same length, AND\n2. Every character appears the same number of times in both\n\n**Algorithm Options:**\n- **Option 1:** Sort both strings and compare (O(n log n))\n- **Option 2:** Count characters in a map and compare (O(n))\n\nFor efficiency, use character counting.\n\n**Implementation:**\n1. Check if lengths match; if not, return false\n2. Count character frequencies in string s using a map/array\n3. For each character in t, decrement its count\n4. If any count goes negative or doesn\'t reach zero at the end, return false\n5. Otherwise, return true\n\n**Example:** s = "anagram", t = "nagaram"\n- Length check: both 7 ✓\n- Count s: {a:3, n:1, g:1, r:1, m:1}\n- Decrement with t: n(0), a(2), g(0), a(1), r(0), a(0), m(0) ✓\n- All counts are 0, so true ✓\n\n**Implement `solve(input)` where `input = { s: string, t: string }`. Return `true` if t is an anagram of s, `false` otherwise.**',
+    correctExplanation:
+      'Check if lengths are equal. Then count the frequency of each character in s and in t. If all frequencies match (you can decrement s frequencies with t characters and all reach zero), they\'re anagrams. This is a character-frequency matching pattern.',
+    tests: [
+      { input: [{ s: 'anagram', t: 'nagaram' }], expected: true },
+      { input: [{ s: 'rat', t: 'car' }], expected: false },
+      { input: [{ s: '', t: '' }], expected: true },
+    ],
+  },
+  {
+    id: 'raw-coding-insanely-hard-container-most-water-0013',
+    difficulty: 'insanelyHard',
+    prompt:
+      'Container With Most Water (Two-Pointer Greedy)\n\n**Problem:** Given heights, find two lines that can form the largest container (width = indices apart, height = min of the two heights).\n\n**Example:** [1,8,6,2,5,4,8,3,7]. Maximum area is 49 (using indices 1 and 8 with heights 8 and 7).\n\n**Visualization:**\n```\n      |   |         |           [49 = min(8,7) × (8-1)]\n      | | |   |     | |\n    | | | | | |   | | |\n  1 8 6 2 5 4 8 3 7\n  ^                 ^\n```\n\n**Greedy Insight:** Start with the widest container (leftmost and rightmost). The area is limited by the shorter line. To improve area, you must increase height (width will only decrease as pointers move closer). So move the shorter line inward, hoping to find a taller line.\n\n**Why This Works:** If the left line is shorter, moving the right inward gives a smaller width and doesn\'t increase height (right is taller, so height is still limited by left). Moving the left inward has a chance to find a taller line. This greedy choice never misses the optimal solution.\n\n**Algorithm:**\n1. Initialize left = 0, right = n-1\n2. While left < right:\n   - Compute area = min(heights[left], heights[right]) × (right - left)\n   - Update max area\n   - If heights[left] < heights[right], move left inward (increment)\n   - Else, move right inward (decrement)\n3. Return max area\n\n**Example Walkthrough:** [1,8,6,2,5,4,8,3,7]\n- left=0 (h=1), right=8 (h=7): area=min(1,7)×8=8, h[0]<h[8] so left++\n- left=1 (h=8), right=8 (h=7): area=min(8,7)×7=49, h[8]<h[1] so right--\n- ...continue...\n- Max area: 49\n\n**Time Complexity:** O(n) single pass. Space: O(1).\n\n**Implement `solve(input)` where `input = number[]` heights. Return the maximum water container area.**',
+    correctExplanation:
+      'Use two pointers at the start and end. Compute the area between them, which is limited by the shorter height. Move the pointer on the shorter height inward because moving the taller pointer cannot increase the limiting height but decreases width. Keep track of the maximum area seen.',
+    tests: [
+      { input: [[1, 8, 6, 2, 5, 4, 8, 3, 7]], expected: 49 },
+      { input: [[1, 1]], expected: 1 },
+      { input: [[2, 3, 4, 5, 18, 17, 6]], expected: 17 },
+    ],
+  },
+]
+
+export default data

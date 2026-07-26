@@ -1,0 +1,188 @@
+const data = [
+  {
+    id: 'hard-valid-list-multi-region-writes-1',
+    difficulty: 'hard',
+    prompt: 'For multi-region active-active writes, select all concerns that are valid and typically unavoidable in design discussions.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Active-active write systems must address conflict semantics, convergence, replication lag, and failure-mode behavior under partitions.',
+    validList: {
+      helperText: 'Choose all unavoidable concerns for active-active write architectures.',
+      items: [
+        'Conflict resolution policy (LWW, merge, app-level rules)',
+        'Clock skew and ordering ambiguity handling',
+        'Replication lag and read-your-write expectations',
+        'Partition behavior and consistency tradeoffs',
+        'Convergence guarantees after reconciliation',
+        'Assume strict global ordering with no coordination cost',
+        'Ignore duplicate write replay scenarios',
+        'Treat region isolation as impossible',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-exactly-once-pipeline-2',
+    difficulty: 'hard',
+    prompt: 'In a stream processing pipeline, select all mechanisms that are valid building blocks toward effectively-exactly-once outcomes.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'In practice, effectively-exactly-once semantics come from idempotent sinks, dedupe, deterministic replay, and transactional boundaries where possible.',
+    validList: {
+      helperText: 'Pick all mechanisms that materially help exactly-once style outcomes.',
+      items: [
+        'Idempotent sink writes',
+        'Deterministic processing keyed by event identity',
+        'Deduplication window/state store',
+        'Checkpointing with replay from durable offsets',
+        'Transactional write + offset commit where supported',
+        'At-most-once delivery with no replay path',
+        'Randomized event IDs on retry',
+        'Skip all poison-message handling',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-hot-partition-mitigation-3',
+    difficulty: 'hard',
+    prompt: 'A partitioned datastore has severe hot-key imbalance. Select all mitigation strategies that are valid at scale.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Hot partition mitigation usually needs key-space changes, write/load shaping, and read offload while preserving correctness constraints.',
+    validList: {
+      helperText: 'Select all mitigation options that are commonly valid.',
+      items: [
+        'Key salting or suffix bucketing for hot entities',
+        'Adaptive repartitioning based on traffic skew',
+        'Read-through caching for hottest access paths',
+        'Queueing/backpressure to smooth write bursts',
+        'Separate hot and cold data access strategies',
+        'Pin hottest tenant to one shard forever',
+        'Disable all throttling under overload',
+        'Use one partition to simplify analytics',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-global-counter-accuracy-4',
+    difficulty: 'hard',
+    prompt: 'You need globally visible counters with strict correctness requirements. Select all valid design considerations.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Accurate global counters force explicit decisions about consistency model, write serialization cost, reconciliation, and failure handling.',
+    validList: {
+      helperText: 'Pick all correctness-critical considerations for global counters.',
+      items: [
+        'Strong vs eventual consistency requirement per use case',
+        'Write path serialization/coordination tradeoff',
+        'Duplicate increment protection and idempotency',
+        'Region failover semantics for in-flight increments',
+        'Reconciliation strategy for divergent replicas',
+        'Assume no double-increment can ever happen',
+        'Drop increments during partition and never reconcile',
+        'Ignore auditability requirements for critical counters',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-consensus-tradeoffs-5',
+    difficulty: 'hard',
+    prompt: 'For a consensus-backed metadata service, select all tradeoffs that are valid and must be considered.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Consensus delivers strong guarantees but introduces quorum latency, failure-mode constraints, and throughput limits under coordination.',
+    validList: {
+      helperText: 'Pick all real tradeoffs of consensus-based metadata systems.',
+      items: [
+        'Quorum writes add latency vs local commits',
+        'Leader election behavior impacts availability during failover',
+        'Throughput constrained by replicated log coordination',
+        'Read semantics depend on leader/lease strategy',
+        'Cluster sizing affects fault tolerance and write cost',
+        'Consensus provides zero overhead at all scales',
+        'No need to reason about split-brain prevention',
+        'Any network partition keeps full write availability safely',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-disaster-recovery-plan-6',
+    difficulty: 'hard',
+    prompt: 'Select all elements that are valid and necessary in a serious disaster recovery strategy for critical services.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Robust DR planning needs explicit RTO/RPO targets, tested failover runbooks, restore verification, and controlled rollback/failback workflows.',
+    validList: {
+      helperText: 'Choose all core components of a production-grade DR plan.',
+      items: [
+        'Defined RTO and RPO objectives per system',
+        'Documented and rehearsed failover runbooks',
+        'Backup restore validation drills',
+        'Dependency mapping for critical recovery ordering',
+        'Failback plan after primary region recovery',
+        'Rely on backups that are never tested',
+        'No ownership assignment for recovery steps',
+        'Assume infra provider prevents all disasters',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-cache-coherency-7',
+    difficulty: 'hard',
+    prompt: 'In a multi-layer cache architecture, select all valid approaches to reduce stale-read anomalies.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Cache coherency at scale typically combines invalidation/versioning, write discipline, bounded TTLs, and correctness-aware bypass paths.',
+    validList: {
+      helperText: 'Pick all methods that are valid stale-read mitigations.',
+      items: [
+        'Versioned keys or entity versions for freshness checks',
+        'Write-through or write-behind discipline with consistency guardrails',
+        'Targeted invalidation on data mutation events',
+        'TTL strategy tuned per data volatility',
+        'Bypass cache on correctness-critical reads when required',
+        'Infinite TTL for rapidly changing entities',
+        'No invalidation on writes',
+        'Random eviction as sole coherency mechanism',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+  {
+    id: 'hard-valid-list-slo-budget-decisions-8',
+    difficulty: 'hard',
+    prompt: 'You are over error budget for a latency SLO. Select all actions that are valid engineering responses.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'SLO-driven operations require budget-aware release gating, tail-latency analysis, targeted mitigations, and realistic objective recalibration where justified.',
+    validList: {
+      helperText: 'Choose all valid responses when error budget is exhausted.',
+      items: [
+        'Pause risky feature releases until reliability recovers',
+        'Prioritize tail-latency bottleneck remediation',
+        'Tighten alerting and incident ownership for repeated regressions',
+        'Increase capacity or isolate noisy neighbors where saturation is observed',
+        'Review whether SLO target and measurement window are still aligned with product needs',
+        'Ignore budget status and continue normal release pace',
+        'Suppress alerts to reduce on-call noise without fixes',
+        'Remove high-percentile latency from dashboards',
+      ],
+      validIndices: [0, 1, 2, 3, 4],
+    },
+  },
+]
+
+export default data

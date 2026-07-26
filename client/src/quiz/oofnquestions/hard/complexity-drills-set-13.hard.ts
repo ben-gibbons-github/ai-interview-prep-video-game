@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'hard-oofn-code-13-01-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of items in stream.\n\n```ts\nfunction movingAverage(stream, k) {\n  // Case S13Q1\n  const out = [];\n  let sum = 0;\n  let left = 0;\n  for (let right = 0; right < stream.length; right++) {\n    sum += stream[right];\n    if (right - left + 1 > k) sum -= stream[left++];\n    if (right - left + 1 === k) out.push(sum / k);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each index enters and exits the window at most once, so total time is O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-02-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of array elements.\n\n```ts\nfunction maxSubarrayKadane(nums) {\n  // Case S13Q2\n  let best = -Infinity;\n  let cur = 0;\n  for (let i = 0; i < nums.length; i++) {\n    cur = Math.max(nums[i], cur + nums[i]);\n    best = Math.max(best, cur);\n  }\n  return best;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Kadane scans once with constant-time updates per element, giving O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-03-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total characters in all words.\n\n```ts\nfunction groupByFirstChar(words) {\n  // Case S13Q3\n  const groups = new Map();\n  for (let i = 0; i < words.length; i++) {\n    const key = words[i][0] ?? "";\n    if (!groups.has(key)) groups.set(key, []);\n    groups.get(key).push(words[i]);\n  }\n  return groups;\n}\n```\n\nAssume map operations are average O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'Each word is processed once with constant-time bucket operations, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-04-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of temperatures.\n\n```ts\nfunction nextWarmerDay(temps) {\n  // Case S13Q4\n  const out = new Array(temps.length).fill(0);\n  const st = [];\n  for (let i = 0; i < temps.length; i++) {\n    while (st.length && temps[i] > temps[st[st.length - 1]]) {\n      const j = st.pop();\n      out[j] = i - j;\n    }\n    st.push(i);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each index is pushed and popped at most once in the monotonic stack: O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-05-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total nodes in both trees.\n\n```ts\nfunction sameTree(a, b) {\n  // Case S13Q5\n  const q = [[a, b]];\n  let head = 0;\n  while (head < q.length) {\n    const [x, y] = q[head++];\n    if (!x && !y) continue;\n    if (!x || !y || x.val !== y.val) return false;\n    q.push([x.left, y.left]);\n    q.push([x.right, y.right]);\n  }\n  return true;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Each node pair is visited at most once, so runtime is linear in total nodes: O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-06-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total characters in all strings.\n\n```ts\nfunction longestCommonPrefix(strings) {\n  // Case S13Q6\n  if (strings.length === 0) return "";\n  let prefix = strings[0];\n  for (let i = 1; i < strings.length; i++) {\n    while (!strings[i].startsWith(prefix)) {\n      prefix = prefix.slice(0, prefix.length - 1);\n      if (prefix.length === 0) return "";\n    }\n  }\n  return prefix;\n}\n```\n\nAcross all reductions, each character can be removed at most once from prefix. What is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Amortized over all comparisons and prefix trims, total character work is linear: O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-07-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of directed edges.\n\n```ts\nfunction indegrees(n, edges) {\n  // Case S13Q7\n  const deg = new Array(n).fill(0);\n  for (let i = 0; i < edges.length; i++) {\n    const [u, v] = edges[i];\n    if (u >= 0 && v >= 0) deg[v]++;\n  }\n  return deg;\n}\n```\n\nUsing N as number of edge records processed, what is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each edge contributes one constant-time indegree update, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-13-08-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 13 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total values consumed from all iterators.\n\n```ts\nfunction roundRobinMerge(iterators) {\n  // Case S13Q8\n  const out = [];\n  let progressed = true;\n  while (progressed) {\n    progressed = false;\n    for (let i = 0; i < iterators.length; i++) {\n      const it = iterators[i];\n      const nxt = it.next();\n      if (!nxt.done) {\n        out.push(nxt.value);\n        progressed = true;\n      }\n    }\n  }\n  return out;\n}\n```\n\nTreat each successful next() and final done checks as bounded per value stream length. What is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N!)'],
+    correctIndex: 1,
+    correctExplanation: 'Total iterations are proportional to produced values plus bounded terminal checks, giving O(N).',
+  },
+]
+
+export default data

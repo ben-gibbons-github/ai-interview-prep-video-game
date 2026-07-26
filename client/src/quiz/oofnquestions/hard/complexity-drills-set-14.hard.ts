@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'hard-oofn-code-14-01-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of elements.\n\n```ts\nfunction productExceptSelfLinear(nums) {\n  // Case S14Q1\n  const out = new Array(nums.length).fill(1);\n  let pref = 1;\n  for (let i = 0; i < nums.length; i++) {\n    out[i] = pref;\n    pref *= nums[i];\n  }\n  let suff = 1;\n  for (let i = nums.length - 1; i >= 0; i--) {\n    out[i] *= suff;\n    suff *= nums[i];\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Two linear passes still sum to O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-02-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total nodes and edges touched.\n\n```ts\nfunction bfsOrder(start, adj) {\n  // Case S14Q2\n  const q = [start];\n  let head = 0;\n  const seen = new Set([start]);\n  const order = [];\n  while (head < q.length) {\n    const node = q[head++];\n    order.push(node);\n    for (const nxt of adj[node]) {\n      if (!seen.has(nxt)) {\n        seen.add(nxt);\n        q.push(nxt);\n      }\n    }\n  }\n  return order;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'BFS visits each reachable vertex/edge at most once, represented as O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-03-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of intervals.\n\n```ts\nfunction eraseFullyContained(sortedIntervals) {\n  // Case S14Q3\n  const out = [];\n  let maxEnd = -Infinity;\n  for (let i = 0; i < sortedIntervals.length; i++) {\n    const [s, e] = sortedIntervals[i];\n    if (e > maxEnd) {\n      out.push([s, e]);\n      maxEnd = e;\n    }\n  }\n  return out;\n}\n```\n\nAssume intervals are pre-sorted by start asc and end desc. What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'One pass with constant-time comparisons per interval gives O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-04-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of values.\n\n```ts\nfunction nearestSmallerToLeft(nums) {\n  // Case S14Q4\n  const out = new Array(nums.length).fill(-1);\n  const st = [];\n  for (let i = 0; i < nums.length; i++) {\n    while (st.length && st[st.length - 1] >= nums[i]) st.pop();\n    out[i] = st.length ? st[st.length - 1] : -1;\n    st.push(nums[i]);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each value is pushed once and popped at most once from the stack, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-05-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total characters across all dictionary words plus query.\n\n```ts\nfunction canBuildRansom(dictWords, query) {\n  // Case S14Q5\n  const freq = new Map();\n  for (let i = 0; i < dictWords.length; i++) {\n    for (let j = 0; j < dictWords[i].length; j++) {\n      const ch = dictWords[i][j];\n      freq.set(ch, (freq.get(ch) ?? 0) + 1);\n    }\n  }\n  for (let i = 0; i < query.length; i++) {\n    const ch = query[i];\n    const left = (freq.get(ch) ?? 0) - 1;\n    if (left < 0) return false;\n    freq.set(ch, left);\n  }\n  return true;\n}\n```\n\nAssume map operations are average O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Every character in input/query is processed a constant number of times, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-06-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of nodes in linked list.\n\n```ts\nfunction middleNode(head) {\n  // Case S14Q6\n  let slow = head;\n  let fast = head;\n  while (fast && fast.next) {\n    slow = slow.next;\n    fast = fast.next.next;\n  }\n  return slow;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Fast/slow pointers traverse the list linearly overall, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-07-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of operations.\n\n```ts\nfunction minStackOps(ops) {\n  // Case S14Q7\n  const st = [];\n  const mins = [];\n  for (let i = 0; i < ops.length; i++) {\n    const op = ops[i];\n    if (op.type === "push") {\n      st.push(op.val);\n      mins.push(mins.length ? Math.min(mins[mins.length - 1], op.val) : op.val);\n    } else if (op.type === "pop" && st.length) {\n      st.pop();\n      mins.pop();\n    } else if (op.type === "getMin") {\n      void (mins.length ? mins[mins.length - 1] : null);\n    }\n  }\n  return st.length;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each operation is handled once with constant-time stack/min updates, giving O(N).',
+  },
+  {
+    id: 'hard-oofn-code-14-08-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 14 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total cells in the ragged grid.\n\n```ts\nfunction diagonalChecksum(grid) {\n  // Case S14Q8\n  let acc = 0;\n  for (let r = 0; r < grid.length; r++) {\n    const row = grid[r];\n    for (let c = 0; c < row.length; c++) {\n      if (r === c) acc += row[c];\n    }\n  }\n  return acc;\n}\n```\n\nUsing N as total inspected cells, what is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'All cells are visited once in nested loops over total cell count, so O(N).',
+  },
+]
+
+export default data

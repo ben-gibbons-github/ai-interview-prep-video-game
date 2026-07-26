@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'hard-oofn-code-12-01-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total characters read.\n\n```ts\nfunction minWindowByLength(s, k) {\n  // Case S12Q1\n  if (k <= 0 || k > s.length) return [];\n  const out = [];\n  let left = 0;\n  for (let right = 0; right < s.length; right++) {\n    if (right - left + 1 === k) {\n      out.push(s.slice(left, right + 1));\n      left++;\n    }\n  }\n  return out;\n}\n```\n\nAssume fixed-size slice cost is O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Pointers advance through the string once, giving O(N) total work under the assumption.',
+  },
+  {
+    id: 'hard-oofn-code-12-02-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total vertices + traversed edges.\n\n```ts\nfunction reachableCount(start, adj) {\n  // Case S12Q2\n  const st = [start];\n  const seen = new Set([start]);\n  while (st.length) {\n    const node = st.pop();\n    for (const nxt of adj[node]) {\n      if (seen.has(nxt)) continue;\n      seen.add(nxt);\n      st.push(nxt);\n    }\n  }\n  return seen.size;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'DFS visits each reachable node/edge at most once, represented here as O(N).',
+  },
+  {
+    id: 'hard-oofn-code-12-03-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent elements in merged output.\n\n```ts\nfunction mergeTwoSorted(a, b) {\n  // Case S12Q3\n  const out = [];\n  let i = 0;\n  let j = 0;\n  while (i < a.length && j < b.length) {\n    if (a[i] <= b[j]) out.push(a[i++]);\n    else out.push(b[j++]);\n  }\n  while (i < a.length) out.push(a[i++]);\n  while (j < b.length) out.push(b[j++]);\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'Each element from both arrays is appended exactly once, for O(N) total.',
+  },
+  {
+    id: 'hard-oofn-code-12-04-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of bars.\n\n```ts\nfunction previousGreaterIndex(nums) {\n  // Case S12Q4\n  const st = [];\n  const out = new Array(nums.length).fill(-1);\n  for (let i = 0; i < nums.length; i++) {\n    while (st.length && nums[st[st.length - 1]] <= nums[i]) st.pop();\n    out[i] = st.length ? st[st.length - 1] : -1;\n    st.push(i);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each index is pushed once and popped at most once, so total time is O(N).',
+  },
+  {
+    id: 'hard-oofn-code-12-05-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of intervals after sorting.\n\n```ts\nfunction mergeSortedIntervals(intervals) {\n  // Case S12Q5\n  if (intervals.length === 0) return [];\n  const out = [intervals[0].slice()];\n  for (let i = 1; i < intervals.length; i++) {\n    const cur = intervals[i];\n    const last = out[out.length - 1];\n    if (cur[0] <= last[1]) last[1] = Math.max(last[1], cur[1]);\n    else out.push(cur.slice());\n  }\n  return out;\n}\n```\n\nAssume intervals are already sorted by start time. What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Single pass over sorted intervals performs constant-time checks/updates per interval: O(N).',
+  },
+  {
+    id: 'hard-oofn-code-12-06-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total nodes visited.\n\n```ts\nfunction levelSums(root) {\n  // Case S12Q6\n  if (!root) return [];\n  const q = [root];\n  let head = 0;\n  const sums = [];\n  while (head < q.length) {\n    const end = q.length;\n    let sum = 0;\n    while (head < end) {\n      const node = q[head++];\n      sum += node.val;\n      if (node.left) q.push(node.left);\n      if (node.right) q.push(node.right);\n    }\n    sums.push(sum);\n  }\n  return sums;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each node is enqueued/dequeued once, resulting in O(N) time.',
+  },
+  {
+    id: 'hard-oofn-code-12-07-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of characters processed.\n\n```ts\nfunction simplifySpaces(s) {\n  // Case S12Q7\n  const out = [];\n  let inSpace = false;\n  for (let i = 0; i < s.length; i++) {\n    const ch = s[i];\n    if (ch === " ") {\n      if (!inSpace) out.push(ch);\n      inSpace = true;\n    } else {\n      out.push(ch);\n      inSpace = false;\n    }\n  }\n  return out.join("").trim();\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'The algorithm performs a single pass over characters and linear join/trim, so O(N).',
+  },
+  {
+    id: 'hard-oofn-code-12-08-2026',
+    difficulty: 'hard',
+    prompt: 'LiveCode Complexity Drill (HARD Set 12 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total map entries emitted.\n\n```ts\nfunction flattenCounts(rows) {\n  // Case S12Q8\n  const out = [];\n  for (let i = 0; i < rows.length; i++) {\n    const counts = rows[i];\n    for (const key in counts) {\n      out.push([i, key, counts[key]]);\n    }\n  }\n  return out;\n}\n```\n\nUsing N as total key-value pairs traversed, what is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each emitted entry corresponds to one traversal step, so total runtime is O(N).',
+  },
+]
+
+export default data

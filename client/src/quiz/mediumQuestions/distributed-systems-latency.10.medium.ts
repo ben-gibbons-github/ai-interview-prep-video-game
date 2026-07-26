@@ -1,0 +1,88 @@
+const data = [
+  {
+    id: 'medium-distributed-latency-10-q1',
+    difficulty: 'medium',
+    prompt: 'Your p99 spikes every 10 minutes while average latency is stable. Which diagnosis path is strongest?',
+    options: [
+      'Ignore p99 because p50 is stable',
+      'Correlate spikes with GC, deployments, cron jobs, and downstream saturation',
+      'Increase client timeout only',
+      'Disable tracing to reduce overhead',
+      'Restart all services every 5 minutes',
+    ],
+    correctIndex: 1,
+    correctExplanation: 'Periodic spikes often correlate to scheduled work or resource events; correlation first is key.',
+  },
+  {
+    id: 'medium-distributed-latency-10-q2',
+    difficulty: 'medium',
+    prompt: 'A fan-out endpoint calls 20 backends. What reduces tail-latency amplification best?',
+    options: [
+      'Wait for all downstream calls unbounded',
+      'Use per-call deadlines and partial responses for optional subcalls',
+      'Add one global retry for every branch',
+      'Route every branch through the same host',
+      'Increase payload size to reduce request count',
+    ],
+    correctIndex: 1,
+    correctExplanation: 'Bounded deadlines plus partial degradation reduce tail amplification from the slowest branch.',
+  },
+  {
+    id: 'medium-distributed-latency-10-q3',
+    difficulty: 'medium',
+    prompt: 'Which retry policy is usually safest for transient failures?',
+    options: [
+      'Immediate infinite retries without jitter',
+      'Exponential backoff with jitter and max-attempt cap',
+      'Retry only on 2xx',
+      'Retry permanently on client validation errors',
+      'Parallel duplicate retries to all replicas',
+    ],
+    correctIndex: 1,
+    correctExplanation: 'Backoff + jitter avoids synchronized retry storms and bounded attempts limit damage.',
+  },
+  {
+    id: 'medium-distributed-latency-10-q4',
+    difficulty: 'medium',
+    prompt: 'A read API has 80% cache hit and still poor p99. What should you inspect next?',
+    options: [
+      'Only cache miss path latency distribution and origin dependency health',
+      'Reduce cache TTL to zero',
+      'Disable cache invalidation permanently',
+      'Stop collecting miss metrics',
+      'Increase cache memory without profiling misses',
+    ],
+    correctIndex: 0,
+    correctExplanation: 'Tail latency often hides in miss path behavior and slow origin dependencies.',
+  },
+  {
+    id: 'medium-distributed-latency-10-q5',
+    difficulty: 'medium',
+    prompt: 'When should you use load shedding?',
+    options: [
+      'Never; always queue indefinitely',
+      'When serving all requests would collapse the whole service',
+      'Only after full regional outage',
+      'Only for successful responses',
+      'Only in development mode',
+    ],
+    correctIndex: 1,
+    correctExplanation: 'Controlled rejection preserves core availability under overload.',
+  },
+  {
+    id: 'medium-distributed-latency-10-q6',
+    difficulty: 'medium',
+    prompt: 'A service has head-of-line blocking in worker pool. Best mitigation?',
+    options: [
+      'Combine all priority classes into one FIFO queue',
+      'Separate queues/pools by request class and set per-class concurrency',
+      'Increase request payload sizes',
+      'Disable deadlines and allow full completion',
+      'Pin all workers to one CPU core',
+    ],
+    correctIndex: 1,
+    correctExplanation: 'Class-based isolation reduces starvation from long-running jobs.',
+  },
+]
+
+export default data

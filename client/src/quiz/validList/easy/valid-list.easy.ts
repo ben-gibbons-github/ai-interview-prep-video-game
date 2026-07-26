@@ -1,0 +1,188 @@
+const data = [
+  {
+    id: 'easy-valid-list-basic-requirements-1',
+    difficulty: 'easy',
+    prompt: 'Select all statements that are valid examples of functional requirements.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Functional requirements define what the system should do: behaviors, endpoints, and user-visible capabilities.',
+    validList: {
+      helperText: 'Pick every statement that describes behavior the system must provide.',
+      items: [
+        'Users can upload profile photos',
+        'Users can reset passwords by email',
+        'The API exposes an endpoint to fetch account history',
+        'Admins can ban abusive accounts',
+        'Page background uses dark blue',
+        'Engineering team uses standups every morning',
+        'Whiteboard markers should be new',
+        'The office has fast Wi-Fi',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-cache-use-cases-2',
+    difficulty: 'easy',
+    prompt: 'Select all scenarios where adding a cache is typically a valid first optimization.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Caches are most useful for repeated reads, expensive computations, and frequently accessed data with acceptable staleness windows.',
+    validList: {
+      helperText: 'Choose all scenarios where caching is a good fit.',
+      items: [
+        'Hot read-heavy product catalog',
+        'Frequently requested leaderboard pages',
+        'Expensive response assembled from multiple services',
+        'Repeated profile lookups for active users',
+        'Single-use one-time password validation writes',
+        'Every operation must be strongly consistent at all times',
+        'Request is unique every time and never repeated',
+        'Data changes many times per second with no stale tolerance',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-availability-practices-3',
+    difficulty: 'easy',
+    prompt: 'Select all valid practices that improve service availability.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Availability improves with redundancy, health checks, graceful degradation, and safe retry strategies.',
+    validList: {
+      helperText: 'Pick all reliability practices that directly improve uptime.',
+      items: [
+        'Run multiple stateless app instances',
+        'Use load balancer health checks',
+        'Add timeouts and retries with backoff',
+        'Degrade non-critical features during incidents',
+        'Route all traffic to a single host to simplify debugging',
+        'Remove metrics and alerts in production',
+        'Disable failover to reduce complexity',
+        'Keep one shared database node with no replica',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-api-design-basics-4',
+    difficulty: 'easy',
+    prompt: 'Select all API design choices that are usually valid defaults for public REST endpoints.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Good API defaults include explicit versioning, pagination, clear status codes, and idempotency where retries happen.',
+    validList: {
+      helperText: 'Choose all API defaults that generally improve operability and client safety.',
+      items: [
+        'Version endpoints explicitly',
+        'Use pagination for large list responses',
+        'Return structured error payloads',
+        'Make retry-prone create/update paths idempotent when possible',
+        'Return HTTP 200 for all responses including failures',
+        'Expose internal stack traces to clients',
+        'Use random response fields per request',
+        'Force clients to guess retry behavior',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-load-balancer-basics-5',
+    difficulty: 'easy',
+    prompt: 'Select all valid reasons to place a load balancer in front of application servers.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Load balancers improve distribution, availability, and operational control through health-based routing and controlled traffic management.',
+    validList: {
+      helperText: 'Pick every valid role a load balancer can play.',
+      items: [
+        'Distribute requests across multiple instances',
+        'Route away from unhealthy instances',
+        'Support gradual deployments (e.g., canary)',
+        'Reduce single-instance overload risk',
+        'Guarantee zero latency for all users',
+        'Replace all monitoring and alerts',
+        'Eliminate need for horizontal scaling',
+        'Automatically fix application bugs',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-database-indexing-signals-6',
+    difficulty: 'easy',
+    prompt: 'Select all signs that adding or tuning an index is likely a valid next step.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Indexing is a common next step when query latency is high on predictable filters/sorts and execution plans show costly scans.',
+    validList: {
+      helperText: 'Choose all signals that suggest indexing work is warranted.',
+      items: [
+        'Frequent full table scans on hot queries',
+        'Slow lookups on commonly filtered columns',
+        'Sort-heavy queries on large datasets',
+        'Execution plan indicates high scan cost',
+        'UI icon alignment seems off',
+        'Low latency query already using selective index',
+        'No repeated query pattern exists',
+        'Schema has no read path requirements',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-message-queue-basics-7',
+    difficulty: 'easy',
+    prompt: 'Select all valid benefits of introducing a message queue between producers and workers.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Queues decouple producers from consumers, absorb bursts, and support asynchronous processing with retry controls.',
+    validList: {
+      helperText: 'Pick every common queue benefit.',
+      items: [
+        'Decouple producer request path from background work',
+        'Buffer burst traffic to protect workers',
+        'Enable asynchronous retries and dead-letter handling',
+        'Scale consumers independently from API tier',
+        'Guarantee exactly-once with zero design effort',
+        'Remove need for idempotency in consumers',
+        'Eliminate all delivery duplication risk',
+        'Force all tasks to complete instantly',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+  {
+    id: 'easy-valid-list-auth-basics-8',
+    difficulty: 'easy',
+    prompt: 'Select all valid authentication and session-security practices for a typical web app.',
+    options: ['Correct subset selected', 'Incorrect subset selected'],
+    correctIndex: 0,
+    correctExplanation:
+      'Strong auth hygiene includes secure credential storage, session protections, and baseline abuse safeguards.',
+    validList: {
+      helperText: 'Choose all security practices that are generally correct.',
+      items: [
+        'Store passwords using a strong salted hash',
+        'Use HTTPS for all auth and session traffic',
+        'Expire sessions and rotate long-lived tokens',
+        'Rate-limit login attempts',
+        'Store plaintext passwords for easier debugging',
+        'Send credentials in URL query strings',
+        'Use one shared account for all users',
+        'Disable auth logs in production',
+      ],
+      validIndices: [0, 1, 2, 3],
+    },
+  },
+]
+
+export default data

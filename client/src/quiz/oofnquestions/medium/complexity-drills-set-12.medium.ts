@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'medium-oofn-code-12-01-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of updates.\n\n```ts\nfunction dedupeAdjacentInPlace(nums) {\n  // Case S12Q1\n  if (nums.length === 0) return 0;\n  let write = 1;\n  for (let read = 1; read < nums.length; read++) {\n    if (nums[read] !== nums[read - 1]) {\n      nums[write++] = nums[read];\n    }\n  }\n  return write;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Read/write pointers each move forward through the array once, giving O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-02-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of characters.\n\n```ts\nfunction longestRun(s) {\n  // Case S12Q2\n  if (s.length === 0) return 0;\n  let best = 1;\n  let run = 1;\n  for (let i = 1; i < s.length; i++) {\n    run = s[i] === s[i - 1] ? run + 1 : 1;\n    if (run > best) best = run;\n  }\n  return best;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'A single linear scan over characters yields O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-03-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent queue events.\n\n```ts\nfunction processQueue(events) {\n  // Case S12Q3\n  const q = [];\n  let head = 0;\n  for (let i = 0; i < events.length; i++) {\n    if (events[i].type === "enqueue") q.push(events[i].value);\n    else if (events[i].type === "dequeue" && head < q.length) head++;\n  }\n  return q.length - head;\n}\n```\n\nAssume push and head increment are O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each event is processed once with constant-time operations, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-04-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of edges inspected.\n\n```ts\nfunction edgeCount(adj) {\n  // Case S12Q4\n  let count = 0;\n  for (let u = 0; u < adj.length; u++) {\n    for (const _v of adj[u]) count++;\n  }\n  return count;\n}\n```\n\nIf N includes all traversed adjacency entries, what is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Total work is proportional to total adjacency entries visited, represented as O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-05-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of tokens.\n\n```ts\nfunction firstUniqueToken(tokens) {\n  // Case S12Q5\n  const freq = new Map();\n  for (let i = 0; i < tokens.length; i++) {\n    freq.set(tokens[i], (freq.get(tokens[i]) ?? 0) + 1);\n  }\n  for (let i = 0; i < tokens.length; i++) {\n    if ((freq.get(tokens[i]) ?? 0) === 1) return tokens[i];\n  }\n  return null;\n}\n```\n\nAssume map operations are average O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Two linear passes still sum to O(N) asymptotically.',
+  },
+  {
+    id: 'medium-oofn-code-12-06-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent matrix cells.\n\n```ts\nfunction countPositiveCells(grid) {\n  // Case S12Q6\n  let total = 0;\n  for (let r = 0; r < grid.length; r++) {\n    for (let c = 0; c < grid[r].length; c++) {\n      if (grid[r][c] > 0) total++;\n    }\n  }\n  return total;\n}\n```\n\nUsing N as total cells visited, what is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Every cell is checked once, so complexity is linear in total cells O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-07-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of values.\n\n```ts\nfunction prefixMaximums(nums) {\n  // Case S12Q7\n  const out = new Array(nums.length);\n  let best = -Infinity;\n  for (let i = 0; i < nums.length; i++) {\n    if (nums[i] > best) best = nums[i];\n    out[i] = best;\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'It performs one pass over the array with constant-time updates: O(N).',
+  },
+  {
+    id: 'medium-oofn-code-12-08-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 12 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of characters in path.\n\n```ts\nfunction normalizeSlashes(path) {\n  // Case S12Q8\n  const out = [];\n  let prevSlash = false;\n  for (let i = 0; i < path.length; i++) {\n    const ch = path[i];\n    if (ch === "/") {\n      if (!prevSlash) out.push(ch);\n      prevSlash = true;\n    } else {\n      out.push(ch);\n      prevSlash = false;\n    }\n  }\n  return out.join("");\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Each character is processed once, so runtime is O(N).',
+  },
+]
+
+export default data

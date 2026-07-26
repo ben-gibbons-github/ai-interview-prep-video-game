@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'medium-oofn-code-13-01-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of numbers processed.\n\n```ts\nfunction compressCounts(nums) {\n  // Case S13Q1\n  const out = [];\n  if (nums.length === 0) return out;\n  let cur = nums[0];\n  let cnt = 1;\n  for (let i = 1; i < nums.length; i++) {\n    if (nums[i] === cur) cnt++;\n    else {\n      out.push([cur, cnt]);\n      cur = nums[i];\n      cnt = 1;\n    }\n  }\n  out.push([cur, cnt]);\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'The input is scanned once and each element contributes constant work, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-02-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of requests.\n\n```ts\nfunction boundedRecent(reqs, windowSize) {\n  // Case S13Q2\n  const q = [];\n  for (let i = 0; i < reqs.length; i++) {\n    q.push(reqs[i]);\n    if (q.length > windowSize) q.shift();\n  }\n  return q;\n}\n```\n\nAssume shift is O(1) via deque implementation. What is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Each request enters/exits at most once under O(1) deque operations, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-03-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of prices.\n\n```ts\nfunction dailyDiffs(prices) {\n  // Case S13Q3\n  if (prices.length === 0) return [];\n  const out = [0];\n  for (let i = 1; i < prices.length; i++) {\n    out.push(prices[i] - prices[i - 1]);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'A single pass computes each difference once, giving O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-04-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of bits in binary string.\n\n```ts\nfunction parityBit(bits) {\n  // Case S13Q4\n  let ones = 0;\n  for (let i = 0; i < bits.length; i++) {\n    if (bits[i] === "1") ones++;\n  }\n  return ones % 2;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'The function inspects each bit once, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-05-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of intervals.\n\n```ts\nfunction totalCoveredLength(sortedIntervals) {\n  // Case S13Q5\n  if (sortedIntervals.length === 0) return 0;\n  let [start, end] = sortedIntervals[0];\n  let total = 0;\n  for (let i = 1; i < sortedIntervals.length; i++) {\n    const [s, e] = sortedIntervals[i];\n    if (s <= end) end = Math.max(end, e);\n    else {\n      total += end - start;\n      start = s;\n      end = e;\n    }\n  }\n  return total + (end - start);\n}\n```\n\nAssume intervals are pre-sorted. What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'It performs a single linear merge pass over intervals, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-06-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of characters in text.\n\n```ts\nfunction wordsFromText(text) {\n  // Case S13Q6\n  const words = [];\n  let cur = "";\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    if (ch === " ") {\n      if (cur.length) words.push(cur);\n      cur = "";\n    } else {\n      cur += ch;\n    }\n  }\n  if (cur.length) words.push(cur);\n  return words;\n}\n```\n\nAssume append to cur is O(1) amortized. What is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N!)'],
+    correctIndex: 1,
+    correctExplanation: 'Each character is processed once; total work grows linearly with text length: O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-07-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of stack operations.\n\n```ts\nfunction validatePushPop(ops) {\n  // Case S13Q7\n  const st = [];\n  for (let i = 0; i < ops.length; i++) {\n    const op = ops[i];\n    if (op.type === "push") st.push(op.val);\n    else if (op.type === "pop") {\n      if (st.length === 0) return false;\n      st.pop();\n    }\n  }\n  return true;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each operation is handled once with O(1) stack work, resulting in O(N).',
+  },
+  {
+    id: 'medium-oofn-code-13-08-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 13 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total items across buckets.\n\n```ts\nfunction flattenBuckets(buckets) {\n  // Case S13Q8\n  const out = [];\n  for (let i = 0; i < buckets.length; i++) {\n    const b = buckets[i];\n    for (let j = 0; j < b.length; j++) {\n      out.push(b[j]);\n    }\n  }\n  return out;\n}\n```\n\nUsing N as total pushed items, what is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Each element from all buckets is visited exactly once, so O(N).',
+  },
+]
+
+export default data

@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'easy-oofn-code-13-01-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of sensor readings.\n\n```ts\nfunction maxReading(readings) {\n  // Case S13Q1\n  let best = -Infinity;\n  for (let i = 0; i < readings.length; i++) {\n    if (readings[i] > best) best = readings[i];\n  }\n  return best;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'It checks each reading exactly once, so runtime is O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-02-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of jobs.\n\n```ts\nfunction countCompleted(jobs) {\n  // Case S13Q2\n  let done = 0;\n  for (let i = 0; i < jobs.length; i++) {\n    if (jobs[i].done) done++;\n  }\n  return done;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'A single loop over jobs with constant work per item gives O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-03-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of users.\n\n```ts\nfunction collectEmails(users) {\n  // Case S13Q3\n  const out = [];\n  for (let i = 0; i < users.length; i++) {\n    out.push(users[i].email);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'It iterates once through users and appends each email, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-04-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of grades.\n\n```ts\nfunction hasFailingGrade(grades) {\n  // Case S13Q4\n  for (let i = 0; i < grades.length; i++) {\n    if (grades[i] < 60) return true;\n  }\n  return false;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Worst case inspects every grade once, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-05-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of points.\n\n```ts\nfunction shiftX(points, dx) {\n  // Case S13Q5\n  for (let i = 0; i < points.length; i++) {\n    points[i].x += dx;\n  }\n  return points;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'Each point is updated once in one pass, making it O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-06-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of booleans.\n\n```ts\nfunction anyTrue(flags) {\n  // Case S13Q6\n  for (let i = 0; i < flags.length; i++) {\n    if (flags[i]) return true;\n  }\n  return false;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Worst-case checks all entries, so asymptotic time is O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-07-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of filenames.\n\n```ts\nfunction totalNameLength(names) {\n  // Case S13Q7\n  let total = 0;\n  for (let i = 0; i < names.length; i++) {\n    total += names[i].length;\n  }\n  return total;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'One linear pass over the list gives O(N).',
+  },
+  {
+    id: 'easy-oofn-code-13-08-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 13 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of account balances.\n\n```ts\nfunction clampNegatives(balances) {\n  // Case S13Q8\n  for (let i = 0; i < balances.length; i++) {\n    if (balances[i] < 0) balances[i] = 0;\n  }\n  return balances;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Every entry may be examined once, resulting in O(N).',
+  },
+]
+
+export default data

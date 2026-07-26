@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'easy-oofn-code-14-01-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of CPU samples.\n\n```ts\nfunction averageCpu(samples) {\n  // Case S14Q1\n  let sum = 0;\n  for (let i = 0; i < samples.length; i++) {\n    sum += samples[i];\n  }\n  return samples.length ? sum / samples.length : 0;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'It performs one pass over all samples, so runtime is O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-02-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of packet sizes.\n\n```ts\nfunction countLargePackets(sizes, threshold) {\n  // Case S14Q2\n  let count = 0;\n  for (let i = 0; i < sizes.length; i++) {\n    if (sizes[i] > threshold) count++;\n  }\n  return count;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'The loop checks each packet size once, giving O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-03-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of message strings.\n\n```ts\nfunction uppercaseAll(msgs) {\n  // Case S14Q3\n  const out = [];\n  for (let i = 0; i < msgs.length; i++) {\n    out.push(msgs[i].toUpperCase());\n  }\n  return out;\n}\n```\n\nTreat toUpperCase per item as bounded constant here. What is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Each element is transformed once, so work scales linearly: O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-04-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of IDs.\n\n```ts\nfunction firstNegativeId(ids) {\n  // Case S14Q4\n  for (let i = 0; i < ids.length; i++) {\n    if (ids[i] < 0) return i;\n  }\n  return -1;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Worst case scans all IDs once, which is O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-05-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of scores.\n\n```ts\nfunction normalizeTo100(scores, maxScore) {\n  // Case S14Q5\n  const out = new Array(scores.length);\n  for (let i = 0; i < scores.length; i++) {\n    out[i] = (scores[i] / maxScore) * 100;\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'A single pass does constant arithmetic per score, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-06-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of booleans in feature flags.\n\n```ts\nfunction allEnabled(flags) {\n  // Case S14Q6\n  for (let i = 0; i < flags.length; i++) {\n    if (!flags[i]) return false;\n  }\n  return true;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Worst case inspects each flag once, yielding O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-07-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of products.\n\n```ts\nfunction collectSkus(products) {\n  // Case S14Q7\n  const skus = [];\n  for (let i = 0; i < products.length; i++) {\n    skus.push(products[i].sku);\n  }\n  return skus;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each product contributes one constant-time push, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-14-08-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 14 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of readings.\n\n```ts\nfunction replaceNaNWithZero(values) {\n  // Case S14Q8\n  for (let i = 0; i < values.length; i++) {\n    if (Number.isNaN(values[i])) values[i] = 0;\n  }\n  return values;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'The array is traversed once with constant-time checks, giving O(N).',
+  },
+]
+
+export default data

@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'easy-oofn-code-12-01-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of words.\n\n```ts\nfunction countLongWords(words, minLen) {\n  // Case S12Q1\n  let count = 0;\n  for (let i = 0; i < words.length; i++) {\n    if (words[i].length >= minLen) count++;\n  }\n  return count;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'It scans the array once and does constant work per item, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-02-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of events.\n\n```ts\nfunction earliestFailure(events) {\n  // Case S12Q2\n  for (let i = 0; i < events.length; i++) {\n    if (events[i].ok === false) return i;\n  }\n  return -1;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Worst case checks every event once, which is O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-03-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of values.\n\n```ts\nfunction copyAbsolute(nums) {\n  // Case S12Q3\n  const out = new Array(nums.length);\n  for (let i = 0; i < nums.length; i++) {\n    out[i] = Math.abs(nums[i]);\n  }\n  return out;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'One linear pass with constant-time work per element gives O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-04-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent list length.\n\n```ts\nfunction trailingZeros(arr) {\n  // Case S12Q4\n  let count = 0;\n  for (let i = arr.length - 1; i >= 0; i--) {\n    if (arr[i] !== 0) break;\n    count++;\n  }\n  return count;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'In the worst case it visits all elements once, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-05-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of transactions.\n\n```ts\nfunction sumDeposits(txns) {\n  // Case S12Q5\n  let total = 0;\n  for (let i = 0; i < txns.length; i++) {\n    if (txns[i].type === "deposit") total += txns[i].amount;\n  }\n  return total;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(log N)', 'O(N)', 'O(N^2)'],
+    correctIndex: 2,
+    correctExplanation: 'It processes each transaction once, so runtime scales linearly: O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-06-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of bytes.\n\n```ts\nfunction xorChecksum(bytes) {\n  // Case S12Q6\n  let acc = 0;\n  for (let i = 0; i < bytes.length; i++) {\n    acc ^= bytes[i];\n  }\n  return acc;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'The loop runs once per byte, resulting in O(N) total time.',
+  },
+  {
+    id: 'easy-oofn-code-12-07-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of positions.\n\n```ts\nfunction markVisited(flags, indices) {\n  // Case S12Q7\n  for (let i = 0; i < indices.length; i++) {\n    flags[indices[i]] = true;\n  }\n  return flags;\n}\n```\n\nAssume random access assignment is O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Each index is processed once with O(1) assignment, so O(N).',
+  },
+  {
+    id: 'easy-oofn-code-12-08-2026',
+    difficulty: 'easy',
+    prompt: 'LiveCode Complexity Drill (EASY Set 12 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent string length.\n\n```ts\nfunction removeDashes(s) {\n  // Case S12Q8\n  const out = [];\n  for (let i = 0; i < s.length; i++) {\n    if (s[i] !== "-") out.push(s[i]);\n  }\n  return out.join("");\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Each character is examined once and appended at most once, so O(N).',
+  },
+]
+
+export default data

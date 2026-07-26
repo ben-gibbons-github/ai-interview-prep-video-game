@@ -1,0 +1,68 @@
+const data = [
+  {
+    id: 'medium-oofn-code-14-01-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q1)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of entries.\n\n```ts\nfunction stablePartitionBySign(nums) {\n  // Case S14Q1\n  const neg = [];\n  const nonNeg = [];\n  for (let i = 0; i < nums.length; i++) {\n    if (nums[i] < 0) neg.push(nums[i]);\n    else nonNeg.push(nums[i]);\n  }\n  return neg.concat(nonNeg);\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'One scan to partition plus linear concat overall gives O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-02-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q2)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of commands.\n\n```ts\nfunction runUndoable(commands) {\n  // Case S14Q2\n  const st = [];\n  for (let i = 0; i < commands.length; i++) {\n    const c = commands[i];\n    if (c.type === "push") st.push(c.value);\n    else if (c.type === "undo" && st.length) st.pop();\n  }\n  return st.length;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Each command causes O(1) stack work and is handled once, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-03-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q3)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of rows in sorted matrix-like list.\n\n```ts\nfunction rowMaxes(rows) {\n  // Case S14Q3\n  const out = [];\n  for (let r = 0; r < rows.length; r++) {\n    const row = rows[r];\n    out.push(row.length ? row[row.length - 1] : null);\n  }\n  return out;\n}\n```\n\nAssume last-element access is O(1). What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'It iterates through rows once and does constant work per row: O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-04-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q4)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of log lines.\n\n```ts\nfunction severityHistogram(lines) {\n  // Case S14Q4\n  const hist = { INFO: 0, WARN: 0, ERROR: 0 };\n  for (let i = 0; i < lines.length; i++) {\n    const sev = lines[i].severity;\n    if (sev === "INFO" || sev === "WARN" || sev === "ERROR") hist[sev]++;\n  }\n  return hist;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N^3)'],
+    correctIndex: 1,
+    correctExplanation: 'Each line is processed once with constant-time branching and updates: O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-05-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q5)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of characters.\n\n```ts\nfunction reverseWordsOrder(words) {\n  // Case S14Q5\n  const out = [];\n  for (let i = words.length - 1; i >= 0; i--) {\n    out.push(words[i]);\n  }\n  return out.join(" ");\n}\n```\n\nUsing N as total characters across all words, what is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Reordering and final join are linear in output/input size, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-06-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q6)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of values.\n\n```ts\nfunction countTransitions(bits) {\n  // Case S14Q6\n  if (bits.length === 0) return 0;\n  let changes = 0;\n  for (let i = 1; i < bits.length; i++) {\n    if (bits[i] !== bits[i - 1]) changes++;\n  }\n  return changes;\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(N!)'],
+    correctIndex: 1,
+    correctExplanation: 'A single linear scan computes adjacent transitions, so O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-07-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q7)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent number of records.\n\n```ts\nfunction pickByWhitelist(records, allow) {\n  // Case S14Q7\n  const set = new Set(allow);\n  const out = [];\n  for (let i = 0; i < records.length; i++) {\n    if (set.has(records[i].key)) out.push(records[i]);\n  }\n  return out;\n}\n```\n\nAssume set lookups are average O(1) and N counts total processed entries. What is the dominant Big-O time complexity?',
+    options: ['O(1)', 'O(N)', 'O(N log N)', 'O(N^2)'],
+    correctIndex: 1,
+    correctExplanation: 'Construction and filtering are each linear, so asymptotically O(N).',
+  },
+  {
+    id: 'medium-oofn-code-14-08-2026',
+    difficulty: 'medium',
+    prompt: 'LiveCode Complexity Drill (MEDIUM Set 14 Q8)\n\nAnalyze the runtime complexity of the following code snippet. Let N represent total emitted characters.\n\n```ts\nfunction joinWithComma(parts) {\n  // Case S14Q8\n  const out = [];\n  for (let i = 0; i < parts.length; i++) {\n    if (i > 0) out.push(",");\n    out.push(parts[i]);\n  }\n  return out.join("");\n}\n```\n\nWhat is the dominant Big-O time complexity?',
+    options: ['O(log N)', 'O(N)', 'O(N^2)', 'O(2^N)'],
+    correctIndex: 1,
+    correctExplanation: 'Building and joining scale with total output size, so O(N).',
+  },
+]
+
+export default data
