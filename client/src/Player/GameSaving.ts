@@ -68,6 +68,7 @@ export interface QuizSaveState {
 export interface EnemySaveState {
   id: string
   kind: EnemyKind
+  isSummonerReinforcement?: boolean
   position: [number, number, number]
   currentHealth: number
   maxHealth: number
@@ -216,8 +217,17 @@ function isValidDateKey(value: string): boolean {
 }
 
 function normalizeEnemySaveState(enemyState: EnemySaveState): EnemySaveState {
+  const inferredSummonerReinforcement =
+    enemyState.isSummonerReinforcement === true ||
+    (enemyState.isSummonerReinforcement === undefined &&
+      enemyState.kind === 'grunt' &&
+      Math.abs(enemyState.attackInterval - 1.55) < 0.001 &&
+      Math.abs(enemyState.projectileDamage - 0.095) < 0.0005 &&
+      Math.abs(enemyState.projectileSpeed - 10.6) < 0.001)
+
   return {
     ...enemyState,
+    isSummonerReinforcement: inferredSummonerReinforcement,
     frozenRemainingSeconds: Math.max(0, Math.floor(enemyState.frozenRemainingSeconds ?? 0)),
     frozenIntensity: Math.max(0, Math.min(0.95, enemyState.frozenIntensity ?? 0)),
   }
@@ -828,6 +838,7 @@ function isValidSaveState(value: unknown): value is GameSaveState {
         Number.isFinite(snapshot.currentHealth) &&
         typeof snapshot.maxHealth === 'number' &&
         Number.isFinite(snapshot.maxHealth) &&
+        (snapshot.isSummonerReinforcement === undefined || typeof snapshot.isSummonerReinforcement === 'boolean') &&
         (snapshot.burningDamagePerSecond === undefined ||
           (typeof snapshot.burningDamagePerSecond === 'number' &&
             Number.isFinite(snapshot.burningDamagePerSecond) &&

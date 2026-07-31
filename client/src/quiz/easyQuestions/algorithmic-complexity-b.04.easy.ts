@@ -10,7 +10,7 @@ const data = [
       "Ignore constant factors entirely when N is small but response times are strict."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Evaluate growth rates with realistic N ranges and workload distributions. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Evaluate growth rates with realistic N ranges and workload distributions. "
   },
   {
     "id": "easy-algorithmic-complexity-b-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Treat O(N log N) as always slower than O(N) in practical systems."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Document both worst-case and expected-case complexity when behavior diverges. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Document both worst-case and expected-case complexity when behavior diverges. "
   }
 ]
 

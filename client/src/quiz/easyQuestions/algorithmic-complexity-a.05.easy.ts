@@ -10,7 +10,7 @@ const data = [
       "Count only average-case paths and ignore worst-case growth."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Use amortized reasoning when occasional expensive operations are spread across many cheap ones. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Use amortized reasoning when occasional expensive operations are spread across many cheap ones. "
   },
   {
     "id": "easy-algorithmic-complexity-a-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Measure complexity against input dimensions instead of line-by-line syntax."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Measure complexity against input dimensions instead of line-by-line syntax. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Measure complexity against input dimensions instead of line-by-line syntax. "
   }
 ]
 

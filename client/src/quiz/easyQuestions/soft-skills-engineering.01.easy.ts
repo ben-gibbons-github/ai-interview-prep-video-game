@@ -10,7 +10,7 @@ const data = [
       "Mentor by assigning difficult tasks without structured guidance."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Give specific, behavior-focused feedback tied to outcomes and next steps. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Give specific, behavior-focused feedback tied to outcomes and next steps. "
   },
   {
     "id": "easy-soft-skills-engineering-01-q2",
@@ -23,7 +23,7 @@ const data = [
       "Resolve disagreements by aligning on goals, evidence, and measurable constraints."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Resolve disagreements by aligning on goals, evidence, and measurable constraints. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Resolve disagreements by aligning on goals, evidence, and measurable constraints. "
   }
 ]
 

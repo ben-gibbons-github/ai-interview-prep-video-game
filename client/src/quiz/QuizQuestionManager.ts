@@ -1174,6 +1174,16 @@ const MULTI_SECTION_SYSTEM_DESIGN_QUESTION_INTERVAL = 9
 const STAR_TRANSCRIPTION_DEBUG_LOGGING = true
 const STAR_WORKFLOW_DEBUG_LOGGING = true
 
+type CadenceSpecialQuestionType =
+  | 'starStoryTitle'
+  | 'starStorySectionOrdering'
+  | 'starStoryMatching'
+  | 'systemDesign'
+  | 'multiSectionSystemDesign'
+  | 'rawCoding'
+
+const cadenceSpecialQuestionQueue: CadenceSpecialQuestionType[] = []
+
 function isQuestionAllowedByFocusFilters(question: QuizQuestionBankEntry): boolean {
   if (question.transcriptionQuestion) {
     return ACTIVE_QUIZ_FOCUS_FILTERS.starVoice
@@ -2512,118 +2522,6 @@ export function getNextQuizQuestion(
     )
   }
 
-  if (
-    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
-      requireTitle: true,
-      interval: STAR_STORY_TITLE_QUESTION_INTERVAL,
-    })
-  ) {
-    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
-    if (transcriptionQuestion) {
-      return transcriptionQuestion
-    }
-
-    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
-    if (hardReplacementQuestion) {
-      return hardReplacementQuestion
-    }
-
-    const starStoryTitleQuestion = pickQuestionFromPool(
-      fallbackOrder,
-      askedQuestionIds,
-      questionPosition,
-      totalAvailableQuestions,
-      { requireStarStory: true, requireStarStoryTitle: true },
-    )
-    if (starStoryTitleQuestion) {
-      return starStoryTitleQuestion
-    }
-  }
-
-  if (
-    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
-      requireSectionOrdering: true,
-      interval: STAR_STORY_ORDERING_QUESTION_INTERVAL,
-    })
-  ) {
-    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
-    if (transcriptionQuestion) {
-      return transcriptionQuestion
-    }
-
-    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
-    if (hardReplacementQuestion) {
-      return hardReplacementQuestion
-    }
-
-    const starStoryOrderingQuestion = pickQuestionFromPool(
-      fallbackOrder,
-      askedQuestionIds,
-      questionPosition,
-      totalAvailableQuestions,
-      { requireStarStory: true, requireStarStorySectionOrdering: true },
-    )
-    if (starStoryOrderingQuestion) {
-      return starStoryOrderingQuestion
-    }
-  }
-
-  if (
-    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
-      requireMatching: true,
-      interval: STAR_STORY_MATCHING_QUESTION_INTERVAL,
-    })
-  ) {
-    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
-    if (transcriptionQuestion) {
-      return transcriptionQuestion
-    }
-
-    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
-    if (hardReplacementQuestion) {
-      return hardReplacementQuestion
-    }
-
-    const starStoryQuestion = pickQuestionFromPool(
-      fallbackOrder,
-      askedQuestionIds,
-      questionPosition,
-      totalAvailableQuestions,
-      { requireStarStory: true, requireStarStoryMatching: true },
-    )
-    if (starStoryQuestion) {
-      return starStoryQuestion
-    }
-  }
-
-  if (isSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
-    const systemDesignQuestion = pickSystemDesignQuestionFromPool(
-      fallbackOrder,
-      askedQuestionIds,
-      questionPosition,
-      totalAvailableQuestions,
-    )
-
-    if (systemDesignQuestion) {
-      return systemDesignQuestion
-    }
-  }
-
-  if (isMultiSectionSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
-    if (targetDifficulty === 'hard') {
-      const multiSectionSystemDesignQuestion = pickMultiSectionSystemDesignQuestionFromPool(
-        fallbackOrder,
-        askedQuestionIds,
-        questionPosition,
-        totalAvailableQuestions,
-      )
-
-      if (multiSectionSystemDesignQuestion) {
-        return multiSectionSystemDesignQuestion
-      }
-    }
-  }
-
   const isThirdSlot = questionPosition % 3 === 0
   const isTwelfthSlot = questionPosition % 12 === 0
   const normalizedRawCodingFrequencyMultiplier = Math.max(1, rawCodingFrequencyMultiplier)
@@ -2665,36 +2563,170 @@ export function getNextQuizQuestion(
     )
   }
 
+  const pickStarStoryTitleCadenceQuestion = (): QuizQuestion | null => {
+    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
+    if (transcriptionQuestion) {
+      return transcriptionQuestion
+    }
+
+    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
+    if (hardReplacementQuestion) {
+      return hardReplacementQuestion
+    }
+
+    return pickQuestionFromPool(
+      fallbackOrder,
+      askedQuestionIds,
+      questionPosition,
+      totalAvailableQuestions,
+      { requireStarStory: true, requireStarStoryTitle: true },
+    )
+  }
+
+  const pickStarStorySectionOrderingCadenceQuestion = (): QuizQuestion | null => {
+    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
+    if (transcriptionQuestion) {
+      return transcriptionQuestion
+    }
+
+    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
+    if (hardReplacementQuestion) {
+      return hardReplacementQuestion
+    }
+
+    return pickQuestionFromPool(
+      fallbackOrder,
+      askedQuestionIds,
+      questionPosition,
+      totalAvailableQuestions,
+      { requireStarStory: true, requireStarStorySectionOrdering: true },
+    )
+  }
+
+  const pickStarStoryMatchingCadenceQuestion = (): QuizQuestion | null => {
+    const transcriptionQuestion = maybePickTranscriptionForStarStorySlot()
+    if (transcriptionQuestion) {
+      return transcriptionQuestion
+    }
+
+    const hardReplacementQuestion = maybePickHardSpecialStarStoryReplacement()
+    if (hardReplacementQuestion) {
+      return hardReplacementQuestion
+    }
+
+    return pickQuestionFromPool(
+      fallbackOrder,
+      askedQuestionIds,
+      questionPosition,
+      totalAvailableQuestions,
+      { requireStarStory: true, requireStarStoryMatching: true },
+    )
+  }
+
+  const pickCadenceSpecialQuestionByType = (
+    cadenceType: CadenceSpecialQuestionType,
+  ): QuizQuestion | null => {
+    switch (cadenceType) {
+      case 'starStoryTitle':
+        return pickStarStoryTitleCadenceQuestion()
+      case 'starStorySectionOrdering':
+        return pickStarStorySectionOrderingCadenceQuestion()
+      case 'starStoryMatching':
+        return pickStarStoryMatchingCadenceQuestion()
+      case 'systemDesign':
+        return pickSystemDesignQuestion()
+      case 'multiSectionSystemDesign':
+        return pickMultiSectionSystemDesignQuestion()
+      case 'rawCoding':
+        return maybePickRawCodingQuestion()
+      default:
+        return null
+    }
+  }
+
+  const cadenceDueSpecialTypes: CadenceSpecialQuestionType[] = []
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireTitle: true,
+      interval: STAR_STORY_TITLE_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueSpecialTypes.push('starStoryTitle')
+  }
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireSectionOrdering: true,
+      interval: STAR_STORY_ORDERING_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueSpecialTypes.push('starStorySectionOrdering')
+  }
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireMatching: true,
+      interval: STAR_STORY_MATCHING_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueSpecialTypes.push('starStoryMatching')
+  }
+
+  if (isSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
+    cadenceDueSpecialTypes.push('systemDesign')
+  }
+
+  if (isMultiSectionSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
+    cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+  }
+
   if (isThirdSlot) {
     if (isTwelfthSlot) {
-      const systemDesignQuestion = pickSystemDesignQuestion()
-      if (systemDesignQuestion) {
-        return systemDesignQuestion
-      }
-
-      const multiSectionSystemDesignQuestion = pickMultiSectionSystemDesignQuestion()
-      if (multiSectionSystemDesignQuestion) {
-        return multiSectionSystemDesignQuestion
-      }
-
-      const rawCodingQuestion = maybePickRawCodingQuestion()
-      if (rawCodingQuestion) {
-        return rawCodingQuestion
-      }
+      cadenceDueSpecialTypes.push('systemDesign')
+      cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+      cadenceDueSpecialTypes.push('rawCoding')
     } else {
-      const rawCodingQuestion = maybePickRawCodingQuestion()
-      if (rawCodingQuestion) {
-        return rawCodingQuestion
+      cadenceDueSpecialTypes.push('rawCoding')
+      cadenceDueSpecialTypes.push('systemDesign')
+      cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+    }
+  }
+
+  // De-duplicate while preserving order so a cadence collision queues each other type once for this slot.
+  const uniqueCadenceDueSpecialTypes: CadenceSpecialQuestionType[] = []
+  const seenCadenceTypes = new Set<CadenceSpecialQuestionType>()
+  for (const cadenceType of cadenceDueSpecialTypes) {
+    if (seenCadenceTypes.has(cadenceType)) {
+      continue
+    }
+
+    seenCadenceTypes.add(cadenceType)
+    uniqueCadenceDueSpecialTypes.push(cadenceType)
+  }
+
+  if (uniqueCadenceDueSpecialTypes.length > 0) {
+    for (let index = 1; index < uniqueCadenceDueSpecialTypes.length; index += 1) {
+      cadenceSpecialQuestionQueue.push(uniqueCadenceDueSpecialTypes[index])
+    }
+
+    for (const cadenceType of uniqueCadenceDueSpecialTypes) {
+      const pickedSpecialQuestion = pickCadenceSpecialQuestionByType(cadenceType)
+      if (pickedSpecialQuestion) {
+        return pickedSpecialQuestion
+      }
+    }
+  } else {
+    // No cadence-special due this slot: replay deferred special cadence picks first-in-first-out.
+    while (cadenceSpecialQuestionQueue.length > 0) {
+      const queuedCadenceType = cadenceSpecialQuestionQueue.shift()
+      if (!queuedCadenceType) {
+        break
       }
 
-      const systemDesignQuestion = pickSystemDesignQuestion()
-      if (systemDesignQuestion) {
-        return systemDesignQuestion
-      }
-
-      const multiSectionSystemDesignQuestion = pickMultiSectionSystemDesignQuestion()
-      if (multiSectionSystemDesignQuestion) {
-        return multiSectionSystemDesignQuestion
+      const queuedSpecialQuestion = pickCadenceSpecialQuestionByType(queuedCadenceType)
+      if (queuedSpecialQuestion) {
+        return queuedSpecialQuestion
       }
     }
   }

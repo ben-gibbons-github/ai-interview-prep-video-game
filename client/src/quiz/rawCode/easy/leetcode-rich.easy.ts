@@ -451,43 +451,103 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-easy-rich-invert-binary-tree-array-1011",
     "difficulty": "easy",
-    "prompt": "Live coding Challenge (Invert Binary Tree (Array Representation))\n\nScenario: A visualization engine mirrors tree layouts for UI symmetry mode.\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree.\n\nReturn: level-order array of inverted tree (trim trailing nulls).\n\nConstraints & Notes: Children of i are 2i+1 and 2i+2.\n\nHint: Swap left/right recursively or iteratively.",
-    "correctExplanation": "Build node structure from array, swap children at every node, serialize back level-order. Time O(n), Space O(n).",
+    "prompt": "Live coding Challenge (Invert Binary Tree)\n\nScenario: A visualization engine mirrors tree layouts for UI symmetry mode.\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }.\n\nReturn: the inverted tree root object after recursively swapping left/right at every node.\n\nHint: DFS or BFS swap at each node.",
+    "correctExplanation": "Traverse the node graph, and at each node swap its left/right references, then recurse/iterate into children. Time O(n), Space O(h) recursion or O(n) iterative.",
     "tests": [
       {
         "input": [
-          [
-            4,
-            2,
-            7,
-            1,
-            3,
-            6,
-            9
-          ]
+          {
+            "val": 4,
+            "left": {
+              "val": 2,
+              "left": {
+                "val": 1,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "val": 3,
+                "left": null,
+                "right": null
+              }
+            },
+            "right": {
+              "val": 7,
+              "left": {
+                "val": 6,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "val": 9,
+                "left": null,
+                "right": null
+              }
+            }
+          }
         ],
         "expected": [
-          4,
-          7,
-          2,
-          9,
-          6,
-          3,
-          1
+          {
+            "val": 4,
+            "left": {
+              "val": 7,
+              "left": {
+                "val": 9,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "val": 6,
+                "left": null,
+                "right": null
+              }
+            },
+            "right": {
+              "val": 2,
+              "left": {
+                "val": 3,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "val": 1,
+                "left": null,
+                "right": null
+              }
+            }
+          }
         ]
       },
       {
         "input": [
-          [
-            2,
-            1,
-            3
-          ]
+          {
+            "val": 2,
+            "left": {
+              "val": 1,
+              "left": null,
+              "right": null
+            },
+            "right": {
+              "val": 3,
+              "left": null,
+              "right": null
+            }
+          }
         ],
         "expected": [
-          2,
-          3,
-          1
+          {
+            "val": 2,
+            "left": {
+              "val": 3,
+              "left": null,
+              "right": null
+            },
+            "right": {
+              "val": 1,
+              "left": null,
+              "right": null
+            }
+          }
         ]
       }
     ]

@@ -10,7 +10,7 @@ const data = [
       "Add indexes to every column to guarantee better performance in all cases."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Partition by access patterns and enforce key distribution to reduce hotspots. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Partition by access patterns and enforce key distribution to reduce hotspots. "
   },
   {
     "id": "easy-database-management-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Run all workloads at serializable isolation regardless of throughput impact."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Profile workload first, then choose indexes that match dominant query patterns. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Profile workload first, then choose indexes that match dominant query patterns. "
   }
 ]
 

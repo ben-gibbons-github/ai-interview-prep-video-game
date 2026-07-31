@@ -4,7 +4,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-distinct-subseq-5001",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Distinct Subsequences Count)\n\nScenario: A sequence analytics backend counts how many ways target can be formed from source deletions.\n\nImplement `solve(input)` where `input = { s: string, t: string }`.\n\nReturn: number of distinct subsequences of s equal to t.\n\nConstraints & Notes: Counts can be large but fit JS number for tests.\n\nHint: DP where dp[i][j] uses include/exclude transitions.",
+    "prompt": "Live coding Challenge (Distinct Subsequences Count)\n\nYou are given two strings `s` and `t`. Count how many distinct subsequences of `s` are exactly equal to `t`.\nA subsequence is formed by deleting zero or more characters without changing the order of the remaining characters.\n\nImplement `solve(input)` where `input = { s: string, t: string }`.\n\nReturn a number: total distinct ways to form `t` from `s`.\n\nImportant details:\n- Different deletion choices count as different ways, even if they produce the same visible string.\n- If `t` is empty, the answer is 1 (choose nothing).\n- If `s` is empty and `t` is non-empty, answer is 0.\n- Assume answers fit in JavaScript number for provided tests.\n\nHint: Dynamic programming with include/skip transitions.",
     "correctExplanation": "If chars match add both choose+skip paths, else carry skip path. Time O(|s|*|t|), Space O(|t|) optimized.",
     "tests": [
       {
@@ -30,7 +30,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-minimum-cost-cut-stick-5002",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Minimum Cost To Cut A Stick)\n\nScenario: A fabrication planner minimizes cumulative cut cost over required cut positions.\n\nImplement `solve(input)` where `input = { n: number, cuts: number[] }`.\n\nReturn: minimum total cost.\n\nConstraints & Notes: Cut cost equals current segment length.\n\nHint: Interval DP on sorted cut boundaries.",
+    "prompt": "Live coding Challenge (Minimum Cost To Cut A Stick)\n\nYou have a stick of length `n` with required cut positions in `cuts`. You may perform cuts in any order.\nWhenever you cut a segment, the cost of that cut is the current segment length being cut.\nYour goal is to choose the cut order that minimizes total cost.\n\nImplement `solve(input)` where `input = { n: number, cuts: number[] }`.\n\nReturn a number: minimum possible total cutting cost.\n\nImportant details:\n- Every position in `cuts` must be cut exactly once.\n- Cut order changes cost significantly.\n- Typical approach: sort cuts and include boundaries 0 and n.\n\nHint: Interval DP where each possible first cut splits into two subproblems.",
     "correctExplanation": "Try each cut as first cut in interval and take min(subproblems + interval length). Time O(m^3), Space O(m^2).",
     "tests": [
       {
@@ -67,7 +67,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-max-score-multiplication-5003",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Maximum Score From Multiplication Operations)\n\nScenario: A strategy model picks from array ends each round against weighted multipliers.\n\nImplement `solve(input)` where `input = { nums: number[], multipliers: number[] }`.\n\nReturn: maximum achievable score.\n\nConstraints & Notes: At each step choose left or right remaining number.\n\nHint: DP by operation index and how many taken from left.",
+    "prompt": "Live coding Challenge (Maximum Score From Multiplication Operations)\n\nYou are given `nums` and `multipliers`. You must perform exactly `multipliers.length` operations.\nOn operation `i`, pick either the leftmost or rightmost value from current `nums`, multiply by `multipliers[i]`, and add to score.\nThe picked number is removed from `nums`.\n\nImplement `solve(input)` where `input = { nums: number[], multipliers: number[] }`.\n\nReturn a number: maximum score achievable after all operations.\n\nImportant details:\n- You cannot skip operations.\n- You always pick from one of the two ends only.\n- Values may be negative, so greedy local choices can fail.\n\nHint: DP by operation index and count picked from left.",
     "correctExplanation": "State (i,leftTaken) determines right index and best future score. Time O(m^2), Space O(m^2).",
     "tests": [
       {
@@ -114,7 +114,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-race-car-5004",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Race Car Min Instructions)\n\nScenario: A control system computes shortest command sequence to hit exact target position.\n\nImplement `solve(input)` where `input = number` target.\n\nReturn: minimum instruction count.\n\nConstraints & Notes: Commands: A (accelerate), R (reverse).\n\nHint: DP with nearest power-of-two overshoot/undershoot cases.",
+    "prompt": "Live coding Challenge (Race Car Min Instructions)\n\nA car starts at position 0 with speed +1 on an infinite number line.\nYou can issue two commands:\n- `A` (accelerate): `position += speed`, then `speed *= 2`\n- `R` (reverse): if speed > 0 then speed = -1, else speed = +1 (position unchanged)\n\nGiven `target` (positive integer), find the minimum number of commands needed to land exactly on `target`.\n\nImplement `solve(input)` where `input = number` target.\n\nReturn a number: minimum instruction count.\n\nImportant details:\n- Exact hit required; passing target is allowed only if you later reverse and return.\n- State space is large, so memoized DP or BFS pruning is expected.\n\nHint: Use bit-length / nearest power-of-two overshoot and undershoot transitions.",
     "correctExplanation": "Use memoized recursion on target based on bit-length strategy. Sub-quadratic DP over target range.",
     "tests": [
       {
@@ -134,7 +134,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-cherry-pickup-5005",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Cherry Pickup II (Two Robots))\n\nScenario: A warehouse simulator routes two collectors to maximize pickup over grid rows.\n\nImplement `solve(input)` where `input = number[][]` grid.\n\nReturn: maximum cherries collectible.\n\nConstraints & Notes: Robots start at top-left and top-right, move to next row with -1/0/+1 col shifts.\n\nHint: 3D DP row,col1,col2.",
+    "prompt": "Live coding Challenge (Cherry Pickup II (Two Robots))\n\nTwo robots move through a grid row by row to collect cherries.\n- Robot A starts at row 0, col 0\n- Robot B starts at row 0, col `cols - 1`\nEach step both robots move to the next row, and each robot may shift column by -1, 0, or +1.\nIf both land on the same cell in a row, that cell's cherries are counted once (not twice).\n\nImplement `solve(input)` where `input = number[][]` grid.\n\nReturn a number: maximum total cherries both robots can collect by the time they reach last row.\n\nImportant details:\n- Robots must stay inside bounds.\n- Both robots move simultaneously one row at a time.\n\nHint: DP state by `(row, col1, col2)`.",
     "correctExplanation": "Transition over both robots’ next column choices and avoid double-counting same cell. Time O(r*c*c*9), Space O(c*c) rolling.",
     "tests": [
       {
@@ -221,7 +221,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-smallest-sufficient-team-size-5006",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Smallest Sufficient Team Size)\n\nScenario: A staffing engine chooses minimal people set covering all required skills.\n\nImplement `solve(input)` where `input = { reqSkills: string[], people: string[][] }`.\n\nReturn: size of smallest sufficient team.\n\nConstraints & Notes: Any valid minimum size accepted.\n\nHint: Bitmask DP over skill coverage states.",
+    "prompt": "Live coding Challenge (Smallest Sufficient Team Size)\n\nYou are given required skills and a list of people, where each person has a subset of skills.\nFind the minimum number of people needed so that the union of their skills covers every required skill.\n\nImplement `solve(input)` where `input = { reqSkills: string[], people: string[][] }`.\n\nReturn a number: size of the smallest sufficient team.\n\nImportant details:\n- You only need the minimum size, not the actual team indices.\n- People can have irrelevant skills; required skills coverage is what matters.\n- Assume at least one sufficient team exists for test cases.\n\nHint: Bitmask each skill and do DP over covered-skill masks.",
     "correctExplanation": "Map skills to bits, iterate people updating best team per covered mask. Time O(P * 2^S), Space O(2^S).",
     "tests": [
       {
@@ -253,7 +253,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-num-ways-stay-same-5007",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Number Of Ways To Stay In Same Place)\n\nScenario: A random walk model counts sequences of moves ending at origin after exact steps.\n\nImplement `solve(input)` where `input = { steps: number, arrLen: number }`.\n\nReturn: number of ways modulo 1_000_000_007.\n\nConstraints & Notes: Moves: left, right, stay; position bounded [0, arrLen-1].\n\nHint: DP by step and position with bounded effective width.",
+    "prompt": "Live coding Challenge (Number Of Ways To Stay In Same Place)\n\nYou start at index 0 in an array of length `arrLen`. You must take exactly `steps` moves.\nAt each move, you may:\n- stay in place\n- move left by 1\n- move right by 1\nYou must always remain within index range `[0, arrLen - 1]`.\n\nImplement `solve(input)` where `input = { steps: number, arrLen: number }`.\n\nReturn a number: total ways to end at index 0 after exactly `steps` moves, modulo `1_000_000_007`.\n\nImportant details:\n- Count distinct move sequences.\n- Effective reachable width is limited by step count.\n\nHint: DP by step and position.",
     "correctExplanation": "Iteratively update next[position] from stay/left/right contributors. Time O(steps * min(arrLen, steps)), Space same.",
     "tests": [
       {
@@ -279,7 +279,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-shortest-common-supersequence-length-5008",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Shortest Common Supersequence Length)\n\nScenario: A merge engine computes minimal composite string length containing two versions as subsequences.\n\nImplement `solve(input)` where `input = { a: string, b: string }`.\n\nReturn: length of shortest common supersequence.\n\nConstraints & Notes: Length = |a| + |b| - LCS(a,b).\n\nHint: Compute LCS length first.",
+    "prompt": "Live coding Challenge (Shortest Common Supersequence Length)\n\nGiven strings `a` and `b`, compute the length of the shortest string that contains both `a` and `b` as subsequences.\nA subsequence preserves order but may skip characters.\n\nImplement `solve(input)` where `input = { a: string, b: string }`.\n\nReturn a number: length of the shortest common supersequence (SCS).\n\nImportant details:\n- You only need the length, not the constructed string.\n- A standard identity is `SCS length = a.length + b.length - LCS(a, b)`.\n\nHint: Compute LCS length via DP, then derive SCS length.",
     "correctExplanation": "DP for LCS then derive SCS length via formula. Time O(m*n), Space O(m*n).",
     "tests": [
       {
@@ -305,7 +305,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-max-dot-product-subseq-5009",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Max Dot Product Of Two Subsequences)\n\nScenario: A signal matcher chooses non-empty subsequences maximizing similarity score.\n\nImplement `solve(input)` where `input = { a: number[], b: number[] }`.\n\nReturn: maximum dot product of non-empty subsequences.\n\nConstraints & Notes: Must pick at least one pair.\n\nHint: DP with option to start new pair or extend prior best.",
+    "prompt": "Live coding Challenge (Max Dot Product Of Two Subsequences)\n\nPick one non-empty subsequence from `a` and one non-empty subsequence from `b` of the same length, then compute their dot product.\nFind the maximum possible dot product.\n\nImplement `solve(input)` where `input = { a: number[], b: number[] }`.\n\nReturn a number: maximum dot product.\n\nImportant details:\n- Both chosen subsequences must be non-empty.\n- Order within each array must be preserved.\n- Values can be negative; answer may also be negative.\n\nHint: 2D DP that considers pair-now, extend-previous, or skip-one-side transitions.",
     "correctExplanation": "dp[i][j] = max of pairing a[i]*b[j] alone, with previous, or skipping one side. Time O(m*n), Space O(m*n).",
     "tests": [
       {
@@ -347,7 +347,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-odd-even-jump-good-starts-5010",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Odd Even Jump Good Starts)\n\nScenario: A jumping-rule simulator counts start indices that can reach end under alternating rules.\n\nImplement `solve(input)` where `input = number[]`.\n\nReturn: count of good starting indices.\n\nConstraints & Notes: Odd jump chooses smallest higher/equal value index; even jump chooses largest lower/equal.\n\nHint: Monotonic stack after sorting indices by values for next-jump precomputation.",
+    "prompt": "Live coding Challenge (Odd Even Jump Good Starts)\n\nGiven array `arr`, from index `i` you perform alternating jumps:\n- 1st jump (odd): go to index `j > i` with smallest value `arr[j]` such that `arr[j] >= arr[i]`\n- 2nd jump (even): go to index `j > i` with largest value `arr[j]` such that `arr[j] <= arr[i]`\nIf multiple candidates exist, choose the smallest index `j`.\nAn index is \"good\" if starting there (with an odd jump first) can eventually reach the last index.\n\nImplement `solve(input)` where `input = number[]`.\n\nReturn a number: count of good starting indices.\n\nHint: Precompute next indices for odd/even jumps, then DP backwards for reachability.",
     "correctExplanation": "Precompute oddNext/evenNext then DP backwards for reachability. Time O(n log n), Space O(n).",
     "tests": [
       {
@@ -379,7 +379,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-palindrome-partition-iii-5011",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Palindrome Partitioning III Min Changes)\n\nScenario: A text sanitizer partitions string into k segments minimizing edits needed per segment palindrome.\n\nImplement `solve(input)` where `input = { s: string, k: number }`.\n\nReturn: minimum total character changes.\n\nConstraints & Notes: Each segment non-empty.\n\nHint: Precompute cost[i][j] changes to make s[i..j] palindrome, then partition DP.",
+    "prompt": "Live coding Challenge (Palindrome Partitioning III Min Changes)\n\nSplit string `s` into exactly `k` non-empty substrings.\nFor each substring, you may change characters so that substring becomes a palindrome.\nEach character change costs 1.\n\nImplement `solve(input)` where `input = { s: string, k: number }`.\n\nReturn a number: minimum total changes needed across all `k` substrings.\n\nImportant details:\n- Partitions must cover entire string in order.\n- Substrings cannot be empty.\n\nHint: Precompute palindrome-conversion cost for every interval, then do partition DP.",
     "correctExplanation": "Use interval mismatch costs and dp parts/end index transitions. Time O(n^2*k), Space O(n^2 + n*k).",
     "tests": [
       {
@@ -405,7 +405,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-profitable-schemes-5012",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Profitable Schemes Count)\n\nScenario: A planning tool counts subsets of jobs meeting min profit under member limit.\n\nImplement `solve(input)` where `input = { n: number, minProfit: number, group: number[], profit: number[] }`.\n\nReturn: number of schemes modulo 1_000_000_007.\n\nConstraints & Notes: Each job can be used at most once.\n\nHint: Knapsack-style DP over members and capped profit.",
+    "prompt": "Live coding Challenge (Profitable Schemes Count)\n\nYou have `m` jobs. Job `i` requires `group[i]` members and yields `profit[i]` profit.\nYou can choose any subset of jobs, each at most once, with total members used <= `n`.\nA scheme is valid if total profit >= `minProfit`.\n\nImplement `solve(input)` where `input = { n: number, minProfit: number, group: number[], profit: number[] }`.\n\nReturn a number: count of valid schemes modulo `1_000_000_007`.\n\nImportant details:\n- Profit can be capped at `minProfit` in DP state to reduce dimensions.\n- This is a 0/1 knapsack counting variant.",
     "correctExplanation": "Iterate jobs and update dp[members][profitCap] backwards. Time O(jobCount * n * minProfit), Space O(n * minProfit).",
     "tests": [
       {
@@ -449,7 +449,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-stickers-spell-word-5013",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Stickers To Spell Word Min Count)\n\nScenario: A resource optimizer picks minimum sticker multiset to assemble target letters.\n\nImplement `solve(input)` where `input = { stickers: string[], target: string }`.\n\nReturn: minimum stickers required, or -1.\n\nConstraints & Notes: Can reuse stickers unlimited times.\n\nHint: Memoized DFS on remaining-target signature.",
+    "prompt": "Live coding Challenge (Stickers To Spell Word Min Count)\n\nYou are given sticker words and a target word.\nYou may use unlimited copies of each sticker.\nFrom each sticker copy, you can take any subset of its letters (each letter at most as many times as it appears on that sticker).\nFind the minimum number of sticker copies needed to form the target exactly.\n\nImplement `solve(input)` where `input = { stickers: string[], target: string }`.\n\nReturn a number: minimum sticker count, or `-1` if impossible.\n\nHint: Memoized DFS/DP on remaining target state with character frequency reduction.",
     "correctExplanation": "Choose useful sticker reducing first char of remaining target and recurse with memoization. Exponential state space with heavy memo pruning.",
     "tests": [
       {
@@ -482,7 +482,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-minimum-incompatibility-5014",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Minimum Incompatibility)\n\nScenario: A partitioning engine groups numbers into k equal sets minimizing sum(max-min) per set.\n\nImplement `solve(input)` where `input = { nums: number[], k: number }`.\n\nReturn: minimum incompatibility sum, or -1 if impossible.\n\nConstraints & Notes: No duplicate within a subset.\n\nHint: Bitmask DP over valid subset bundles.",
+    "prompt": "Live coding Challenge (Minimum Incompatibility)\n\nPartition `nums` into exactly `k` subsets of equal size.\nFor each subset, incompatibility is `(max value - min value)`.\nTotal score is sum of subset incompatibilities.\nYou must minimize this total.\n\nImplement `solve(input)` where `input = { nums: number[], k: number }`.\n\nReturn a number: minimum total incompatibility, or `-1` if no valid partition exists.\n\nImportant details:\n- A subset is invalid if it contains duplicate values.\n- All numbers must be used exactly once.\n\nHint: Precompute valid subset costs, then bitmask DP over used elements.",
     "correctExplanation": "Precompute compatible subset costs of size n/k then DP over used-mask. Bitmask DP exponential but feasible for interview constraints.",
     "tests": [
       {
@@ -522,7 +522,7 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-insanely-hard-rich-maximum-employees-invite-5015",
     "difficulty": "insanelyHard",
-    "prompt": "Live coding Challenge (Maximum Employees To Be Invited)\n\nScenario: An org graph tool computes max invitation size under favorite-cycle seating rules.\n\nImplement `solve(input)` where `input = number[]` favorite mapping graph.\n\nReturn: maximum invite count.\n\nConstraints & Notes: Each employee favorites exactly one employee.\n\nHint: Combine largest cycle and mutual-pair chains.",
+    "prompt": "Live coding Challenge (Maximum Employees To Be Invited)\n\nThere are `n` employees labeled `0..n-1`. `favorite[i]` is the one employee that `i` wants to sit next to.\nYou want to invite the largest possible set such that everyone invited can be seated around a table and each invited employee sits next to their favorite.\n\nImplement `solve(input)` where `input = number[]` representing `favorite`.\n\nReturn a number: maximum employees that can be invited.\n\nImportant details:\n- Each node has out-degree 1 (directed graph of cycles with incoming chains).\n- Answer comes from max of: longest cycle, or sum of all 2-cycles extended by their best incoming chains.\n\nHint: Use indegree trimming for chain lengths plus cycle detection.",
     "correctExplanation": "Topological trim for chain lengths into 2-cycles plus detect longest remaining cycle. Time O(n), Space O(n).",
     "tests": [
       {

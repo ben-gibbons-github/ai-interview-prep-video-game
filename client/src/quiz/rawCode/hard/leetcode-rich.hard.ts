@@ -304,30 +304,50 @@ const data: RawCodingQuestionData[] = [
   {
     "id": "raw-coding-hard-rich-max-path-sum-tree-array-3007",
     "difficulty": "hard",
-    "prompt": "Live coding Challenge (Binary Tree Maximum Path Sum)\n\nScenario: A ranking model computes strongest connected-score chain through hierarchical nodes. Each node contributes positive or negative signal, and the model wants the single best connected path anywhere in the tree to explain the most influential local corridor of decisions.\n\nImplement `solve(input)` where `input` is a binary tree in level-order array form, and each entry is either a node value or `null` for a missing child.\n\nReturn: maximum path sum between any two nodes.\n\nConstraints & Notes: Path can start/end anywhere but must be connected. The optimal path does not need to pass through the root, and negative branches should be ignored when they would only reduce the total.\n\nHint: Postorder DFS returning max gain to parent.",
+    "prompt": "Live coding Challenge (Binary Tree Maximum Path Sum)\n\nScenario: A ranking model computes strongest connected-score chain through hierarchical nodes. Each node contributes positive or negative signal, and the model wants the single best connected path anywhere in the tree to explain the most influential local corridor of decisions.\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }.\n\nReturn: maximum path sum between any two nodes.\n\nConstraints & Notes: Path can start/end anywhere but must be connected. The optimal path does not need to pass through the root, and negative branches should be ignored when they would only reduce the total.\n\nHint: Postorder DFS returning max gain to parent.",
     "correctExplanation": "At each node, combine positive left/right gains for candidate answer and return node+maxGain child. Time O(n), Space O(h).",
     "tests": [
       {
         "input": [
-          [
-            1,
-            2,
-            3
-          ]
+          {
+            "val": 1,
+            "left": {
+              "val": 2,
+              "left": null,
+              "right": null
+            },
+            "right": {
+              "val": 3,
+              "left": null,
+              "right": null
+            }
+          }
         ],
         "expected": 6
       },
       {
         "input": [
-          [
-            -10,
-            9,
-            20,
-            null,
-            null,
-            15,
-            7
-          ]
+          {
+            "val": -10,
+            "left": {
+              "val": 9,
+              "left": null,
+              "right": null
+            },
+            "right": {
+              "val": 20,
+              "left": {
+                "val": 15,
+                "left": null,
+                "right": null
+              },
+              "right": {
+                "val": 7,
+                "left": null,
+                "right": null
+              }
+            }
+          }
         ],
         "expected": 42
       }

@@ -10,7 +10,7 @@ const data = [
       "Resolve disagreements by aligning on goals, evidence, and measurable constraints."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Resolve disagreements by aligning on goals, evidence, and measurable constraints. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Resolve disagreements by aligning on goals, evidence, and measurable constraints. "
   },
   {
     "id": "easy-soft-skills-engineering-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Use broad criticism so peers infer improvements independently."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Keep incident updates concise, regular, and audience-appropriate. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Keep incident updates concise, regular, and audience-appropriate. "
   }
 ]
 

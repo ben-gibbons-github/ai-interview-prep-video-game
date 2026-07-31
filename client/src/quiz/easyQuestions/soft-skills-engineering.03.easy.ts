@@ -10,7 +10,7 @@ const data = [
       "Use broad criticism so peers infer improvements independently."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Keep incident updates concise, regular, and audience-appropriate. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Keep incident updates concise, regular, and audience-appropriate. "
   },
   {
     "id": "easy-soft-skills-engineering-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Settle disagreements by escalation before exploring shared constraints."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Communicate decisions with context, alternatives, and explicit risks. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Communicate decisions with context, alternatives, and explicit risks. "
   }
 ]
 

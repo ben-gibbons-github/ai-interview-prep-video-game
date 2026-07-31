@@ -17,6 +17,10 @@ export class EnemyWaveSpawner {
   private static readonly MIN_ENEMY_SEPARATION = 1.02
   private static readonly MIN_DISTANCE_FROM_PLAYER = 2.2
   private static readonly MAX_SEPARATION_PASSES_PER_FRAME = 3
+  private static readonly FINAL_BOSS_RATE_OF_FIRE_DIVISOR = 5
+  private static readonly FINAL_BOSS_PROJECTILE_DAMAGE_MULTIPLIER = 5
+  private static readonly FINAL_BOSS_SOLO_SUMMON_DELAY_SECONDS = 5
+  private static readonly FINAL_BOSS_SOLO_SUMMON_COUNT = 5
   private readonly worldObject: GameObject
   private readonly player: Player
   private readonly activeEnemies: Enemy[]
@@ -24,6 +28,8 @@ export class EnemyWaveSpawner {
   private readonly difficultyMultiplier: number
   private enemyAttackTargets: Actor[]
   private layoutCorrectionCallback: (() => void) | null = null
+  private finalBossSoloElapsedSeconds = 0
+  private readonly finalBossSoloTriggeredByBossId = new Set<string>()
 
   constructor(
     worldObject: GameObject,
@@ -53,6 +59,8 @@ export class EnemyWaveSpawner {
 
   spawnWave(wave: number) {
     this.activeEnemies.length = 0
+    this.finalBossSoloElapsedSeconds = 0
+    this.finalBossSoloTriggeredByBossId.clear()
     const earlyRoundRofIntervalMultiplier = WaveManager.getEarlyRoundRofIntervalMultiplier(wave)
     this.player.setGlobalAttackIntervalMultiplier(earlyRoundRofIntervalMultiplier)
     this.player.onWaveStart()
@@ -98,7 +106,10 @@ export class EnemyWaveSpawner {
         enemyKind: kind,
         attackInterval:
           kind === 'boss'
-            ? 1.15 * intervalScale * earlyRoundRofIntervalMultiplier
+            ? 1.15 *
+              intervalScale *
+              earlyRoundRofIntervalMultiplier *
+              EnemyWaveSpawner.FINAL_BOSS_RATE_OF_FIRE_DIVISOR
             : kind === 'summoner'
               ? (2.05 * intervalScale + (index % 2) * 0.18) * earlyRoundRofIntervalMultiplier
               : kind === 'bubbler'
@@ -106,7 +117,10 @@ export class EnemyWaveSpawner {
               : (1.9 * intervalScale + (index % 2) * 0.16) * earlyRoundRofIntervalMultiplier,
         projectileDamage:
           kind === 'boss'
-            ? 1.9 * damageScale * effectiveDifficultyMultiplier
+            ? 1.9 *
+              damageScale *
+              effectiveDifficultyMultiplier *
+              EnemyWaveSpawner.FINAL_BOSS_PROJECTILE_DAMAGE_MULTIPLIER
             : kind === 'shield-drainer'
               ? 1.1 * damageScale * effectiveDifficultyMultiplier
               : kind === 'bubbler'
@@ -143,6 +157,8 @@ export class EnemyWaveSpawner {
 
   spawnSavedEnemies(enemyStates: EnemySaveState[]) {
     this.activeEnemies.length = 0
+    this.finalBossSoloElapsedSeconds = 0
+    this.finalBossSoloTriggeredByBossId.clear()
 
     const positionedEnemyStates = this.spreadSavedEnemyStates(enemyStates)
 
@@ -151,6 +167,7 @@ export class EnemyWaveSpawner {
         formationPosition: enemyState.position,
         enemyKind: enemyState.kind,
         saveId: enemyState.id,
+        isSummonerReinforcement: enemyState.isSummonerReinforcement === true,
         attackInterval: enemyState.attackInterval,
         projectileDamage: enemyState.projectileDamage,
         projectileSpeed: enemyState.projectileSpeed,
@@ -220,6 +237,64 @@ export class EnemyWaveSpawner {
         break
       }
     }
+  }
+
+  tickFinalBossSoloSummon(delta: number) {
+    if (delta <= 0) {
+      return
+    }
+
+    const liveEnemies = this.activeEnemies.filter((enemy) => enemy.isAlive())
+    if (liveEnemies.length !== 1) {
+      this.finalBossSoloElapsedSeconds = 0
+      return
+    }
+
+    const soloEnemy = liveEnemies[0]
+    if (soloEnemy.getKind() !== 'boss') {
+      this.finalBossSoloElapsedSeconds = 0
+      return
+    }
+
+    const soloBossId = soloEnemy.getSaveId()
+    if (this.finalBossSoloTriggeredByBossId.has(soloBossId)) {
+      return
+    }
+
+    this.finalBossSoloElapsedSeconds += delta
+    if (this.finalBossSoloElapsedSeconds < EnemyWaveSpawner.FINAL_BOSS_SOLO_SUMMON_DELAY_SECONDS) {
+      return
+    }
+
+    this.finalBossSoloElapsedSeconds = 0
+    this.finalBossSoloTriggeredByBossId.add(soloBossId)
+
+    for (let index = 0; index < EnemyWaveSpawner.FINAL_BOSS_SOLO_SUMMON_COUNT; index += 1) {
+      const spawnOffsetX = (Math.random() - 0.5) * 1.2
+      const spawnOffsetY = (Math.random() < 0.5 ? -1 : 1) * (0.72 + Math.random() * 0.5)
+      const spawnOffsetZ = 0.9 + Math.random() * 0.95
+      const summonedEnemy = new Enemy({
+        formationPosition: [
+          soloEnemy.group.position.x + spawnOffsetX,
+          soloEnemy.group.position.y + spawnOffsetY,
+          soloEnemy.group.position.z + spawnOffsetZ,
+        ],
+        enemyKind: 'grunt',
+        attackInterval: 1.55,
+        projectileDamage: 0.095,
+        projectileSpeed: 10.6 * 0.75,
+        isSummonerReinforcement: true,
+        reinforcementSourceMaxHealth: soloEnemy.getMaxHealthValue(),
+      })
+
+      this.registerEnemy(summonedEnemy)
+    }
+
+    this.postOverlay({
+      title: 'Final Boss Reinforcements',
+      message: 'The boss stood alone and summoned a fresh wave of reinforcements.',
+      durationMs: 2400,
+    })
   }
 
   private buildFormation(enemyCount: number) {

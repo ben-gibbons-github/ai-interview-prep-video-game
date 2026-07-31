@@ -10,7 +10,7 @@ const data = [
       "Hide uncertainty to appear confident, then patch logic silently."
     ],
     "correctIndex": 1,
-    "correctExplanation": "State constraints first, present a baseline, then improve with explicit tradeoffs. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "State constraints first, present a baseline, then improve with explicit tradeoffs. "
   },
   {
     "id": "easy-algorithmic-whiteboarding-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Skip edge-case testing because interviewers prioritize speed over rigor."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Ask clarifying questions before choosing data structures and complexity targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Ask clarifying questions before choosing data structures and complexity targets. "
   }
 ]
 

@@ -10,7 +10,7 @@ const data = [
       "Validate with edge cases and explain why the approach remains correct."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Validate with edge cases and explain why the approach remains correct. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Validate with edge cases and explain why the approach remains correct. "
   },
   {
     "id": "easy-algorithmic-whiteboarding-06-q2",
@@ -23,7 +23,7 @@ const data = [
       "Avoid complexity analysis unless explicitly requested at the end."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Narrate invariants and failure paths while coding to show structured reasoning. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Narrate invariants and failure paths while coding to show structured reasoning. "
   }
 ]
 

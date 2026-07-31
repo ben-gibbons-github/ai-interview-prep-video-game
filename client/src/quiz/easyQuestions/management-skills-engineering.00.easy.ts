@@ -10,7 +10,7 @@ const data = [
       "Use identical growth plans for all engineers to ensure fairness."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Prioritize work by customer impact, risk reduction, and team capacity realism. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prioritize work by customer impact, risk reduction, and team capacity realism. "
   },
   {
     "id": "easy-management-skills-engineering-00-q2",
@@ -23,7 +23,7 @@ const data = [
       "Escalate risk only after deadlines are missed to preserve confidence."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Delegate with clear ownership boundaries, expected outcomes, and review points. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Delegate with clear ownership boundaries, expected outcomes, and review points. "
   }
 ]
 

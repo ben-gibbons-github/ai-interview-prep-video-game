@@ -27,6 +27,8 @@ export interface RunLaunchProgress {
   maxUnlockedDifficulty: RunDifficultyLevel
   lastRunReachedRound: number
   pendingChaosArtifactId: ChaosArtifactId | null
+  startedRunsCount: number
+  completedRunsCount: number
 }
 
 export const RUN_DIFFICULTY_LABELS: Record<RunDifficultyLevel, string> = {
@@ -142,6 +144,8 @@ export function loadRunLaunchProgress(): RunLaunchProgress {
       maxUnlockedDifficulty: 0,
       lastRunReachedRound: 0,
       pendingChaosArtifactId: null,
+      startedRunsCount: 0,
+      completedRunsCount: 0,
     }
   }
 
@@ -152,12 +156,16 @@ export function loadRunLaunchProgress(): RunLaunchProgress {
         maxUnlockedDifficulty: 0,
         lastRunReachedRound: 0,
         pendingChaosArtifactId: null,
+        startedRunsCount: 0,
+        completedRunsCount: 0,
       }
     }
 
     const parsed = JSON.parse(rawValue) as Partial<RunLaunchProgress>
     const maxUnlockedDifficulty = Math.max(0, Math.min(MAX_RUN_DIFFICULTY, Math.floor(parsed.maxUnlockedDifficulty ?? 0))) as RunDifficultyLevel
     const lastRunReachedRound = Math.max(0, Math.floor(parsed.lastRunReachedRound ?? 0))
+    const startedRunsCount = Math.max(0, Math.floor(parsed.startedRunsCount ?? 0))
+    const completedRunsCount = Math.max(0, Math.floor(parsed.completedRunsCount ?? 0))
     const pendingChaosArtifactId = isChaosArtifactId(parsed.pendingChaosArtifactId)
       ? parsed.pendingChaosArtifactId
       : null
@@ -166,12 +174,16 @@ export function loadRunLaunchProgress(): RunLaunchProgress {
       maxUnlockedDifficulty,
       lastRunReachedRound,
       pendingChaosArtifactId,
+      startedRunsCount,
+      completedRunsCount,
     }
   } catch {
     return {
       maxUnlockedDifficulty: 0,
       lastRunReachedRound: 0,
       pendingChaosArtifactId: null,
+      startedRunsCount: 0,
+      completedRunsCount: 0,
     }
   }
 }
@@ -225,5 +237,7 @@ export function updateRunLaunchProgressAfterRun(
     maxUnlockedDifficulty,
     lastRunReachedRound: normalizedReachedRound,
     pendingChaosArtifactId: null,
+    startedRunsCount: Math.max(0, Math.floor(previous.startedRunsCount ?? 0)),
+    completedRunsCount: Math.max(0, Math.floor(previous.completedRunsCount ?? 0)) + 1,
   }
 }

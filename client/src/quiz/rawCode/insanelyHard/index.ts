@@ -1451,7 +1451,7 @@ Key definition(s):
 
 Type: trees
 
-Implement \`solve(input)\` where \`input = { root: (number|null)[], k: number }\`. The tree is level-order with nulls. Return the kth smallest value.
+Implement \`solve(input)\` where \`input = { root: TreeNode | null, k: number }\` and \`TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }\`. Return the kth smallest value.
 
 **Input Parameters (Detailed):**
 - Use the exact input shape shown above and in the tests.
@@ -1486,9 +1486,9 @@ Reference Strategy (Concise):
 Inorder traversal of BST yields sorted values. Traverse iteratively/recursively and stop at kth visited node. Time O(h + k) average, O(n) worst.`,
     correctExplanation: `Inorder traversal of BST yields sorted values. Traverse iteratively/recursively and stop at kth visited node. Time O(h + k) average, O(n) worst.`,
     tests: [
-      { input: [{ root: [3, 1, 4, null, 2], k: 1 }], expected: 1 },
-      { input: [{ root: [5, 3, 6, 2, 4, null, null, 1], k: 3 }], expected: 3 },
-      { input: [{ root: [2, 1, 3], k: 2 }], expected: 2 },
+      { input: [{ root: { val: 3, left: { val: 1, left: null, right: { val: 2, left: null, right: null } }, right: { val: 4, left: null, right: null } }, k: 1 }], expected: 1 },
+      { input: [{ root: { val: 5, left: { val: 3, left: { val: 2, left: { val: 1, left: null, right: null }, right: null }, right: { val: 4, left: null, right: null } }, right: { val: 6, left: null, right: null } }, k: 3 }], expected: 3 },
+      { input: [{ root: { val: 2, left: { val: 1, left: null, right: null }, right: { val: 3, left: null, right: null } }, k: 2 }], expected: 2 },
     ],
   },
   {
@@ -1505,7 +1505,7 @@ Key definition(s):
 
 Type: trees dp
 
-Implement \`solve(input)\` where \`input = (number|null)[]\` level-order tree. Return maximum path sum (path can start/end at any nodes, no repeated nodes).
+Implement \`solve(input)\` where \`input = TreeNode | null\` and \`TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }\`. Return maximum path sum (path can start/end at any nodes, no repeated nodes).
 
 **Input Parameters (Detailed):**
 - Use the exact input shape shown above and in the tests.
@@ -1540,9 +1540,9 @@ Reference Strategy (Concise):
 DFS returns best downward gain from each node. Global answer updates with node.val + max(0,leftGain) + max(0,rightGain). Return node.val + max(leftGain,rightGain,0).`,
     correctExplanation: `DFS returns best downward gain from each node. Global answer updates with node.val + max(0,leftGain) + max(0,rightGain). Return node.val + max(leftGain,rightGain,0).`,
     tests: [
-      { input: [[1, 2, 3]], expected: 6 },
-      { input: [[-10, 9, 20, null, null, 15, 7]], expected: 42 },
-      { input: [[-3]], expected: -3 },
+      { input: [{ val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: null, right: null } }], expected: 6 },
+      { input: [{ val: -10, left: { val: 9, left: null, right: null }, right: { val: 20, left: { val: 15, left: null, right: null }, right: { val: 7, left: null, right: null } } }], expected: 42 },
+      { input: [{ val: -3, left: null, right: null }], expected: -3 },
     ],
   },
   {
@@ -1559,7 +1559,7 @@ Key definition(s):
 
 Type: trees
 
-Implement \`solve(input)\` where \`input = { root: (number|null)[], p: number, q: number }\`. Return the LCA node value in a BST.
+Implement \`solve(input)\` where \`input = { root: TreeNode | null, p: number, q: number }\` and \`TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }\`. Return the LCA node value in a BST.
 
 **Input Parameters (Detailed):**
 - Use the exact input shape shown above and in the tests.
@@ -1594,9 +1594,9 @@ Reference Strategy (Concise):
 In BST, if both p and q are smaller than node, go left; if both larger, go right; otherwise current node is LCA. Time O(h).`,
     correctExplanation: `In BST, if both p and q are smaller than node, go left; if both larger, go right; otherwise current node is LCA. Time O(h).`,
     tests: [
-      { input: [{ root: [6, 2, 8, 0, 4, 7, 9, null, null, 3, 5], p: 2, q: 8 }], expected: 6 },
-      { input: [{ root: [6, 2, 8, 0, 4, 7, 9, null, null, 3, 5], p: 2, q: 4 }], expected: 2 },
-      { input: [{ root: [2, 1], p: 2, q: 1 }], expected: 2 },
+      { input: [{ root: { val: 6, left: { val: 2, left: { val: 0, left: null, right: null }, right: { val: 4, left: { val: 3, left: null, right: null }, right: { val: 5, left: null, right: null } } }, right: { val: 8, left: { val: 7, left: null, right: null }, right: { val: 9, left: null, right: null } } }, p: 2, q: 8 }], expected: 6 },
+      { input: [{ root: { val: 6, left: { val: 2, left: { val: 0, left: null, right: null }, right: { val: 4, left: { val: 3, left: null, right: null }, right: { val: 5, left: null, right: null } } }, right: { val: 8, left: { val: 7, left: null, right: null }, right: { val: 9, left: null, right: null } } }, p: 2, q: 4 }], expected: 2 },
+      { input: [{ root: { val: 2, left: { val: 1, left: null, right: null }, right: null }, p: 2, q: 1 }], expected: 2 },
     ],
   },
   {

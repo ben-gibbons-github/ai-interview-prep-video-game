@@ -10,7 +10,7 @@ const data = [
       "Apply all patches directly in production first to detect failures quickly."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Practice rollback and failover operations before incidents happen. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Practice rollback and failover operations before incidents happen. "
   },
   {
     "id": "easy-sysadmin-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Alert only on CPU percentage and ignore latency or error rate signals."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Automate repeatable operations and keep changes small, reviewed, and reversible. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Automate repeatable operations and keep changes small, reviewed, and reversible. "
   }
 ]
 

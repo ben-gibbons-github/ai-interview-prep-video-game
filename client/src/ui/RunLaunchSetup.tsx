@@ -230,10 +230,11 @@ export function RunLaunchSetup({
   onStartRun,
   onChaosArtifactRolled,
 }: RunLaunchSetupProps) {
+  const hasCompletedAtLeastOneRun = Math.max(0, Math.floor(progress.completedRunsCount ?? 0)) >= 1
   const [selectedDifficulty, setSelectedDifficulty] = useState<number>(initialConfig.difficultyLevel)
   const [hardQuestionsEnabled, setHardQuestionsEnabled] = useState(initialConfig.startingArtifacts.hardQuestions)
   const [starStoriesHardModeEnabled, setStarStoriesHardModeEnabled] = useState(
-    initialConfig.startingArtifacts.starStoriesHardMode,
+    hasCompletedAtLeastOneRun && initialConfig.startingArtifacts.starStoriesHardMode,
   )
   const [chaosArtifactId, setChaosArtifactId] = useState(initialConfig.chaosArtifactId)
   const [chaosRolled, setChaosRolled] = useState(initialConfig.chaosArtifactId !== null)
@@ -329,15 +330,20 @@ export function RunLaunchSetup({
               />
             )}
 
-            <StartingArtifactIcon
-              id="start-artifact-star-stories-hard"
-              name="I Know My Star Stories"
-              description="STAR stories start on hard difficulty and correct answers grant 50% more gold."
-              enabled={starStoriesHardModeEnabled}
-              canEnable={true}
-              onToggle={() => setStarStoriesHardModeEnabled(!starStoriesHardModeEnabled)}
-            />
+            {hasCompletedAtLeastOneRun && (
+              <StartingArtifactIcon
+                id="start-artifact-star-stories-hard"
+                name="I Know My Star Stories"
+                description="STAR stories start on hard difficulty and correct answers grant 50% more gold."
+                enabled={starStoriesHardModeEnabled}
+                canEnable={true}
+                onToggle={() => setStarStoriesHardModeEnabled(!starStoriesHardModeEnabled)}
+              />
+            )}
           </div>
+          {!hasCompletedAtLeastOneRun && (
+            <p className="run-launch-muted">Complete one run to unlock I Know My Star Stories.</p>
+          )}
         </section>
 
         <section className="run-launch-section">
@@ -395,7 +401,7 @@ export function RunLaunchSetup({
                 difficultyLevel: selectedDifficulty as RunDifficultyLevel,
                 startingArtifacts: {
                   hardQuestions: hardQuestionsEnabled && selectedDifficulty >= 1,
-                  starStoriesHardMode: starStoriesHardModeEnabled,
+                  starStoriesHardMode: hasCompletedAtLeastOneRun && starStoriesHardModeEnabled,
                 },
                 chaosArtifactId: chaosUnlocked ? chaosArtifactId : null,
               })

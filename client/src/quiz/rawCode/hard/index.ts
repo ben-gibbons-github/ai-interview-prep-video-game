@@ -61,14 +61,20 @@ const baseData: RawCodingQuestionData[] = [
     id: 'raw-coding-hard-level-order-traversal-0005',
     difficulty: 'hard',
     prompt:
-      'Raw Coding Challenge (Binary Tree Level Order)\\n\\nYou are given a binary tree encoded as a level-order array, where missing children are represented by `null`.\\n\\nImplement `solve(input)` where `input` is that array representation.\\n\\nReturn:\\n- A `number[][]` where each inner array contains node values at one depth level from left to right.\\n\\nNotes:\\n- Ignore `null` entries as nodes.\\n- If the tree is empty, return `[]`.',
+      'Raw Coding Challenge (Binary Tree Level Order)\\n\\nYou are given the root of a binary tree as a nested object graph.\\n\\nImplement `solve(input)` where `input` is `TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`.\\n\\nReturn:\\n- A `number[][]` where each inner array contains node values at one depth level from left to right.\\n\\nNotes:\\n- If the tree is empty, return `[]`.',
     correctExplanation:
-      'Use BFS with level tracking. Start with root at index 0 in a queue, also track depth. Process level-by-level: for each node at index i, children are at 2*i+1 (left) and 2*i+2 (right), skip if null. Group visited nodes by depth. Time O(n), Space O(w) where w is max width. Example: array [3,9,20,null,null,15,7] → level 0: [3]; level 1: [9,20]; level 2: [15,7].'
+      'Use BFS level by level starting from the root node object. For each node dequeued at a level, append node.val and enqueue node.left/node.right when present. Time O(n), Space O(w) where w is max width. Example tree with root 3, children 9 and 20, and 20 having children 15 and 7 gives [[3],[9,20],[15,7]].'
 ,
     tests: [
-      { input: [[[3, 9, 20, null, null, 15, 7]]], expected: [[3], [9, 20], [15, 7]] },
-      { input: [[[1]]], expected: [[1]] },
-      { input: [[[1, null, 2, 3]]], expected: [[1], [2], [3]] },
+      {
+        input: [{ val: 3, left: { val: 9, left: null, right: null }, right: { val: 20, left: { val: 15, left: null, right: null }, right: { val: 7, left: null, right: null } } }],
+        expected: [[3], [9, 20], [15, 7]],
+      },
+      { input: [{ val: 1, left: null, right: null }], expected: [[1]] },
+      {
+        input: [{ val: 1, left: null, right: { val: 2, left: { val: 3, left: null, right: null }, right: null } }],
+        expected: [[1], [2], [3]],
+      },
     ],
   },
   {
@@ -271,52 +277,67 @@ const baseData: RawCodingQuestionData[] = [
     id: 'raw-coding-hard-binary-tree-maximum-depth-0020',
     difficulty: 'hard',
     prompt:
-      'Raw Coding Challenge (Binary Tree Maximum Depth)\n\nGiven a binary tree in level-order array form with `null` placeholders, return the maximum depth of the tree.',
+      'Raw Coding Challenge (Binary Tree Maximum Depth)\n\nGiven the root of a binary tree object, return the maximum depth of the tree.\n\nImplement `solve(input)` where `input` is `TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`.',
     correctExplanation:
-      'Use BFS or DFS. Count the number of levels on a breadth-first traversal, or recursively return 1 + max(depth(left), depth(right)). Time O(n), Space O(h) for DFS or O(n) for BFS. Example: [3,9,20,null,null,15,7] has depth 3.',
+      'Use BFS or DFS over node references. Count the number of levels on a breadth-first traversal, or recursively return 1 + max(depth(left), depth(right)). Time O(n), Space O(h) for DFS or O(n) for BFS. Example: root 3 with children 9 and 20, and 20 with children 15 and 7 has depth 3.',
     tests: [
-      { input: [[3, 9, 20, null, null, 15, 7]], expected: 3 },
-      { input: [[1, null, 2]], expected: 2 },
-      { input: [[]], expected: 0 },
+      {
+        input: [{ val: 3, left: { val: 9, left: null, right: null }, right: { val: 20, left: { val: 15, left: null, right: null }, right: { val: 7, left: null, right: null } } }],
+        expected: 3,
+      },
+      { input: [{ val: 1, left: null, right: { val: 2, left: null, right: null } }], expected: 2 },
+      { input: [null], expected: 0 },
     ],
   },
   {
     id: 'raw-coding-hard-binary-tree-same-tree-0021',
     difficulty: 'hard',
     prompt:
-      'Raw Coding Challenge (Binary Tree Same Tree)\n\nGiven two binary trees in level-order array form with `null` placeholders, return `true` if they are structurally identical and have the same values.',
+      'Raw Coding Challenge (Binary Tree Same Tree)\n\nGiven two binary tree objects, return `true` if they are structurally identical and have the same values.\n\nImplement `solve(input)` where `input = { p: TreeNode | null, q: TreeNode | null }` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`.',
     correctExplanation:
       'Recursively compare corresponding nodes. If both are null, they match. If only one is null or values differ, return false. Otherwise compare left children and right children. Time O(n), Space O(h).',
     tests: [
-      { input: [[1, 2, 3], [1, 2, 3]], expected: true },
-      { input: [[1, 2], [1, null, 2]], expected: false },
-      { input: [[], []], expected: true },
+      {
+        input: [{ p: { val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: null, right: null } }, q: { val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: null, right: null } } }],
+        expected: true,
+      },
+      {
+        input: [{ p: { val: 1, left: { val: 2, left: null, right: null }, right: null }, q: { val: 1, left: null, right: { val: 2, left: null, right: null } } }],
+        expected: false,
+      },
+      { input: [{ p: null, q: null }], expected: true },
     ],
   },
   {
     id: 'raw-coding-hard-binary-tree-zigzag-level-order-0022',
     difficulty: 'hard',
     prompt:
-      'Raw Coding Challenge (Binary Tree Zigzag Level Order)\n\nGiven a binary tree in level-order array form with `null` placeholders, return values level by level, alternating left-to-right and right-to-left order on each row.',
+      'Raw Coding Challenge (Binary Tree Zigzag Level Order)\n\nGiven the root of a binary tree object, return values level by level, alternating left-to-right and right-to-left order on each row.\n\nImplement `solve(input)` where `input` is `TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`.',
     correctExplanation:
       'Do a breadth-first traversal one level at a time. For even levels, append node values left to right; for odd levels, append them in reverse order. Time O(n), Space O(n).',
     tests: [
-      { input: [[3, 9, 20, null, null, 15, 7]], expected: [[3], [20, 9], [15, 7]] },
-      { input: [[1]], expected: [[1]] },
-      { input: [[]], expected: [] },
+      {
+        input: [{ val: 3, left: { val: 9, left: null, right: null }, right: { val: 20, left: { val: 15, left: null, right: null }, right: { val: 7, left: null, right: null } } }],
+        expected: [[3], [20, 9], [15, 7]],
+      },
+      { input: [{ val: 1, left: null, right: null }], expected: [[1]] },
+      { input: [null], expected: [] },
     ],
   },
   {
     id: 'raw-coding-hard-path-sum-ii-0023',
     difficulty: 'hard',
     prompt:
-      'Raw Coding Challenge (Binary Tree Path Sum II)\n\nGiven a binary tree in level-order array form with `null` placeholders and a target sum, return all root-to-leaf paths whose values sum to the target.',
+      'Raw Coding Challenge (Binary Tree Path Sum II)\n\nGiven a binary tree object and a target sum, return all root-to-leaf paths whose values sum to the target.\n\nImplement `solve(input)` where `input = { root: TreeNode | null, target: number }` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`.',
     correctExplanation:
       'Use DFS backtracking. Carry the running sum and current path. When a leaf is reached, compare the total to the target and copy the path if it matches. Time O(n + output), Space O(h).',
     tests: [
-      { input: [{ tree: [5, 4, 8, 11, null, 13, 4, 7, 2, null, null, 5, 1], target: 22 }], expected: [[5, 4, 11, 2], [5, 8, 4, 5]] },
-      { input: [{ tree: [1, 2, 3], target: 5 }], expected: [] },
-      { input: [{ tree: [1], target: 1 }], expected: [[1]] },
+      {
+        input: [{ root: { val: 5, left: { val: 4, left: { val: 11, left: { val: 7, left: null, right: null }, right: { val: 2, left: null, right: null } }, right: null }, right: { val: 8, left: { val: 13, left: null, right: null }, right: { val: 4, left: { val: 5, left: null, right: null }, right: { val: 1, left: null, right: null } } } }, target: 22 }],
+        expected: [[5, 4, 11, 2], [5, 8, 4, 5]],
+      },
+      { input: [{ root: { val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: null, right: null } }, target: 5 }], expected: [] },
+      { input: [{ root: { val: 1, left: null, right: null }, target: 1 }], expected: [[1]] },
     ],
   },
 ]
@@ -331,7 +352,7 @@ const PROMPT_EXPANSIONS: Record<string, string> = {
   'raw-coding-hard-top-k-frequent-0004':
     'Scenario:\nYou are producing a ranked analytics panel where frequency determines ordering and deterministic tie-breaking is required for stable UI snapshots.\n\nInput/Output Details:\n- `k` is expected to be within the number of unique values.\n- Sort by frequency descending.\n- For equal frequency, sort by numeric value ascending.\n\nEdge Cases To Handle:\n- All values unique.\n- All values identical.\n- Mixed negative and positive values with ties.',
   'raw-coding-hard-level-order-traversal-0005':
-    'Scenario:\nYou are converting compact persisted tree data into level-grouped output for a visualization component that renders one row per depth.\n\nInput/Output Details:\n- Input is a level-order array with `null` placeholders for missing children.\n- Treat only non-null entries as actual nodes.\n- Return `number[][]` grouped by depth, left to right.\n\nEdge Cases To Handle:\n- Empty input array.\n- Sparse trees with many null gaps.\n- Single-node tree.',
+    'Scenario:\nYou are converting persisted in-memory tree node objects into level-grouped output for a visualization component that renders one row per depth.\n\nInput/Output Details:\n- Input is the root `TreeNode` object (`{ val, left, right }`) or `null`.\n- Traverse using `left`/`right` references only.\n- Return `number[][]` grouped by depth, left to right.\n\nEdge Cases To Handle:\n- Null root.\n- Highly unbalanced trees.\n- Single-node tree.',
   'raw-coding-hard-minimum-path-sum-0006':
     'Scenario:\nThis represents a route-planning pass where each grid cell is traversal cost and you need the cheapest valid path under movement constraints.\n\nInput/Output Details:\n- Grid contains non-negative integers.\n- Only moves to the right or down are allowed.\n- Include start and end cell costs in the total sum.\n\nEdge Cases To Handle:\n- 1x1 grid.\n- Single-row or single-column grids.\n- Large values where greedy local choice alone can fail.',
   'raw-coding-hard-decode-string-0007':

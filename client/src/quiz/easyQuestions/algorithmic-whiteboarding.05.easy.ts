@@ -10,7 +10,7 @@ const data = [
       "Skip edge-case testing because interviewers prioritize speed over rigor."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Ask clarifying questions before choosing data structures and complexity targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Ask clarifying questions before choosing data structures and complexity targets. "
   },
   {
     "id": "easy-algorithmic-whiteboarding-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Validate with edge cases and explain why the approach remains correct."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Validate with edge cases and explain why the approach remains correct. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Validate with edge cases and explain why the approach remains correct. "
   }
 ]
 

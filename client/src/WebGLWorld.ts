@@ -6,7 +6,6 @@ import { Enemy } from './gameObjects/Enemy'
 import { EnemyWaveSpawner } from './gameObjects/EnemyWaveSpawner'
 import { QuestionNuke } from './gameObjects/QuestionNuke'
 import { Player } from './Player/Player'
-import { FreezeBombArtifact } from './Player/Artifacts/FreezeBombArtifact'
 import { WaveManager, type RewardPrompt } from './WaveManager'
 import type { GameSaveState } from './Player/GameSaving'
 import type { AllySaveState } from './Player/GameSaving'
@@ -23,6 +22,7 @@ import {
   updateSpaceBackdrop,
 } from './SpaceBackdrop'
 import type { RunLaunchConfig } from './ui/RunLaunchConfig'
+import { applyRunLaunchArtifacts } from './ui/RunArtifactPipeline'
 
 interface OverlayPayload {
   title: string
@@ -443,7 +443,7 @@ export function mountWebGLWorld({
   hoverTooltip.style.lineHeight = '1.4'
   hoverTooltip.style.whiteSpace = 'pre'
   hoverTooltip.style.transform = 'translate(-50%, -105%)'
-  hoverTooltip.style.zIndex = '30'
+  hoverTooltip.style.zIndex = '80'
   hoverTooltip.style.display = 'none'
   document.body.appendChild(hoverTooltip)
 
@@ -530,39 +530,7 @@ export function mountWebGLWorld({
   const player = new Player([-5.0, -0.05, 0.0])
 
   const activeChaosArtifactId = runLaunchConfig?.chaosArtifactId ?? null
-  if (activeChaosArtifactId) {
-    if (activeChaosArtifactId === 'triple-vitals-no-lives') {
-      const maxHealth = player.getMaxHealthValue()
-      const maxShield = player.getMaxShield()
-      player.addFlatMaxHealth(maxHealth * 2)
-      player.addFlatMaxShield(maxShield * 2)
-      player.setMaxHealthGainMultiplier(3)
-      player.setMaxShieldGainMultiplier(3)
-      player.setLives(0)
-    } else if (activeChaosArtifactId === 'gold-125-shield-drain') {
-      player.setRunGoldMultiplier(1.25)
-    } else if (activeChaosArtifactId === 'gold-200-health-drain') {
-      player.setRunGoldMultiplier(1.5)
-    } else if (activeChaosArtifactId === 'no-question-heal-five-freeze-bombs') {
-      for (let index = 0; index < 5; index += 1) {
-        player.applyArtifact(new FreezeBombArtifact())
-      }
-    } else if (activeChaosArtifactId === 'no-question-heal-plus-vitals') {
-      player.addFlatMaxHealth(400)
-      player.addFlatMaxShield(400)
-    } else if (activeChaosArtifactId === 'no-kill-gold-shield-round-gold') {
-      player.setGoldPerKill(0)
-    } else if (activeChaosArtifactId === 'no-kill-gold-health-round-gold') {
-      player.setGoldPerKill(0)
-    } else if (activeChaosArtifactId === 'no-question-heal-damage-lifesteal') {
-      player.setDamageLifestealRatio(0.01)
-    } else if (activeChaosArtifactId === 'no-skips') {
-      player.setSkips(0)
-      player.addGold(300)
-    } else if (activeChaosArtifactId === 'fast-rounds') {
-      player.setCorrectAnswerArtifactBonusMultiplier(2)
-    }
-  }
+  applyRunLaunchArtifacts(player, runLaunchConfig)
 
   playerRef.current = player
   worldObject.addChild(player)
@@ -862,9 +830,11 @@ export function mountWebGLWorld({
           source: player,
           target: targetEnemy,
           damageAmount: snapshot.damageAmount,
+          splashDamageRatio: 0.1,
           speed: snapshot.speed,
           spawnPosition: snapshot.position,
           initialDistanceTravelled: snapshot.distanceTravelled,
+          getSplashTargets: () => activeEnemies,
           spawnEffect: (effect) => {
             registerEffect(effect)
           },
@@ -990,6 +960,7 @@ export function mountWebGLWorld({
       }
 
       worldObject.tick(delta, elapsed)
+      enemyWaveSpawner.tickFinalBossSoloSummon(delta)
       applyFleetArtifactBonusesToAllies()
       worldLayoutTickAccumulator += delta
       if (worldLayoutTickAccumulator >= WORLD_LAYOUT_TICK_SECONDS) {
@@ -1087,10 +1058,10 @@ export function mountWebGLWorld({
         if (roundEndInterestPercent > 0) {
           const interestGold = Math.max(0, player.getGold() * roundEndInterestPercent)
           if (interestGold > 0) {
-            player.addGold(interestGold)
+            const creditedGold = player.addGold(interestGold)
             postOverlay({
               title: 'Artifact Dividend',
-              message: `Compound Ledger paid ${Math.floor(interestGold)} gold.`,
+              message: `Compound Ledger paid ${Math.floor(creditedGold)} gold.`,
               durationMs: 2200,
             })
           }
@@ -1101,10 +1072,10 @@ export function mountWebGLWorld({
           const livingFleetMembers = activeAllies.reduce((count, ally) => count + (ally.isAlive() ? 1 : 0), 0)
           const fleetGold = Math.max(0, goldPerFleetMember * livingFleetMembers)
           if (fleetGold > 0) {
-            player.addGold(fleetGold)
+            const creditedGold = player.addGold(fleetGold)
             postOverlay({
               title: 'Artifact Dividend',
-              message: `Fleet Payroll paid ${Math.floor(fleetGold)} gold for ${livingFleetMembers} fleet members.`,
+              message: `Fleet Payroll paid ${Math.floor(creditedGold)} gold for ${livingFleetMembers} fleet members.`,
               durationMs: 2200,
             })
           }
@@ -1114,10 +1085,10 @@ export function mountWebGLWorld({
         if (roundEndHealthDividendPercent > 0) {
           const healthDividendGold = Math.max(0, player.getCurrentHealth() * roundEndHealthDividendPercent)
           if (healthDividendGold > 0) {
-            player.addGold(healthDividendGold)
+            const creditedGold = player.addGold(healthDividendGold)
             postOverlay({
               title: 'Artifact Dividend',
-              message: `Blood Dividend Pact paid ${Math.floor(healthDividendGold)} gold.`,
+              message: `Blood Dividend Pact paid ${Math.floor(creditedGold)} gold.`,
               durationMs: 2200,
             })
           }
@@ -1155,20 +1126,20 @@ export function mountWebGLWorld({
         if (activeChaosArtifactId === 'no-kill-gold-shield-round-gold') {
           const bonusGold = Math.max(0, player.getCurrentShield() * 0.5)
           if (bonusGold > 0) {
-            player.addGold(bonusGold)
+            const creditedGold = player.addGold(bonusGold)
             postOverlay({
               title: 'Chaos Dividend',
-              message: `Gained ${Math.floor(bonusGold)} gold from shield reserves.`,
+              message: `Gained ${Math.floor(creditedGold)} gold from shield reserves.`,
               durationMs: 2200,
             })
           }
         } else if (activeChaosArtifactId === 'no-kill-gold-health-round-gold') {
           const bonusGold = Math.max(0, player.getCurrentHealth() * 0.3)
           if (bonusGold > 0) {
-            player.addGold(bonusGold)
+            const creditedGold = player.addGold(bonusGold)
             postOverlay({
               title: 'Chaos Dividend',
-              message: `Gained ${Math.floor(bonusGold)} gold from vitality reserves.`,
+              message: `Gained ${Math.floor(creditedGold)} gold from vitality reserves.`,
               durationMs: 2200,
             })
           }

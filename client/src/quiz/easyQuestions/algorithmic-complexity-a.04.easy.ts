@@ -10,7 +10,7 @@ const data = [
       "Assume one nested loop always means O(N^2) regardless of bounds."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Estimate upper bounds from dominant operations and ignore lower-order terms for large N. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Estimate upper bounds from dominant operations and ignore lower-order terms for large N. "
   },
   {
     "id": "easy-algorithmic-complexity-a-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Count only average-case paths and ignore worst-case growth."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Use amortized reasoning when occasional expensive operations are spread across many cheap ones. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Use amortized reasoning when occasional expensive operations are spread across many cheap ones. "
   }
 ]
 

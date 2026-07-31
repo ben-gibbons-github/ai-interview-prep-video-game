@@ -23,6 +23,11 @@ export interface EnemyOptions {
   summonIntervalSeconds?: number
   maxSummons?: number
   saveId?: string
+  isSummonerReinforcement?: boolean
+  reinforcementSourceMaxHealth?: number
+  spriteScale?: number
+  healthbarScale?: number
+  healthbarOffsetY?: number
 }
 
 const GLOBAL_FIRE_RATE_MULTIPLIER = 1
@@ -30,6 +35,11 @@ const GLOBAL_ENEMY_DAMAGE_MULTIPLIER = 20
 const PROJECTILE_SPEED_SCALE = 0.75
 const SHIELD_DRAIN_MULTIPLIER = 0.65 / 4
 const VAMPIRE_HEALTH_DAMAGE_MULTIPLIER = 1 / 5
+const SUMMONER_REINFORCEMENT_SPRITE_SCALE = 0.7
+const SUMMONER_REINFORCEMENT_HEALTHBAR_SCALE = 0.5
+const SUMMONER_REINFORCEMENT_HEALTHBAR_OFFSET_Y = 1.05
+const SUMMONER_REINFORCEMENT_MIN_VERTICAL_OFFSET = 1.35
+const SUMMONER_REINFORCEMENT_VERTICAL_JITTER = 0.42
 
 function getEnemyStyle(kind: EnemyKind) {
   if (kind === 'boss') {
@@ -141,6 +151,7 @@ export class Enemy extends Actor {
   private readonly projectileDamage: number
   private readonly projectileSpeed: number
   private readonly summonIntervalSeconds: number
+  private readonly isSummonerReinforcement: boolean
   private readonly bubbleFreezeIntervalSeconds: number
   private readonly bubbleFreezeDurationSeconds: number
   private readonly saveId: string
@@ -166,6 +177,17 @@ export class Enemy extends Actor {
     }
     const kind = options.enemyKind ?? 'grunt'
     const style = getEnemyStyle(kind)
+    const isSummonerReinforcement = options.isSummonerReinforcement === true
+    const defaultScale =
+      isSummonerReinforcement
+        ? SUMMONER_REINFORCEMENT_SPRITE_SCALE
+        : kind === 'boss'
+          ? 3.35
+          : 2.9
+    const spriteScale = options.spriteScale ?? defaultScale
+    const healthbarScale = options.healthbarScale ?? (isSummonerReinforcement ? SUMMONER_REINFORCEMENT_HEALTHBAR_SCALE : undefined)
+    const healthbarOffsetY =
+      options.healthbarOffsetY ?? (isSummonerReinforcement ? SUMMONER_REINFORCEMENT_HEALTHBAR_OFFSET_Y : undefined)
 
     super('MainEnemy', {
       style,
@@ -174,7 +196,9 @@ export class Enemy extends Actor {
         rotationZ: () => 0,
       },
       animation: {
-        scale: kind === 'boss' ? 3.35 : 2.9,
+        scale: spriteScale,
+        healthbarScale,
+        healthbarOffsetY,
         pulseAmount: 0.14,
         pulseSpeed: kind === 'boss' ? 2.1 : 2.8,
         spriteRotationSpeed: -0.55,
@@ -184,6 +208,7 @@ export class Enemy extends Actor {
     })
 
     this.kind = kind
+    this.isSummonerReinforcement = isSummonerReinforcement
     this.formationPosition = formationPosition
     this.saveId = options.saveId ?? `enemy-${Enemy.nextSaveId}`
     Enemy.advanceSaveIdCounter(this.saveId)
@@ -226,6 +251,18 @@ export class Enemy extends Actor {
 
     if ((options.maxHealthMultiplier ?? 1) > 1) {
       this.increaseMaxHealth(this.getMaxHealthValue() * ((options.maxHealthMultiplier ?? 1) - 1), true)
+    }
+
+    if (isSummonerReinforcement) {
+      const sourceMaxHealth = Math.max(1, options.reinforcementSourceMaxHealth ?? this.getMaxHealthValue())
+      const reinforcementMaxHealth = Math.max(1, sourceMaxHealth * 0.1)
+      const reinforcementCurrentMaxHealth = this.getMaxHealthValue()
+      if (reinforcementMaxHealth > reinforcementCurrentMaxHealth) {
+        this.increaseMaxHealth(reinforcementMaxHealth - reinforcementCurrentMaxHealth, false)
+      } else if (reinforcementMaxHealth < reinforcementCurrentMaxHealth) {
+        this.decreaseMaxHealth(reinforcementCurrentMaxHealth - reinforcementMaxHealth, false)
+      }
+      this.setHealth(reinforcementMaxHealth)
     }
 
     if (kind === 'summoner') {
@@ -313,6 +350,7 @@ export class Enemy extends Actor {
       summonCooldown: this.summonCooldown,
       summonsRemaining: this.summonsRemaining,
       summonIntervalSeconds: this.summonIntervalSeconds,
+      isSummonerReinforcement: this.isSummonerReinforcement,
       burningDamagePerSecond: this.getBurningDamagePerSecond(),
       burningRemainingSeconds: this.getBurningRemainingSeconds(),
       frozenRemainingSeconds: this.getFrozenRemainingSeconds(),
@@ -417,17 +455,23 @@ export class Enemy extends Actor {
         this.spawnSignatureEffect('rgba(253, 224, 71, 0.95)', 'rgba(132, 204, 22, 0.9)', 86, 1.2)
 
         const spawnOffsetX = (Math.random() - 0.5) * 2.2
+        const spawnOffsetY =
+          (Math.random() < 0.5 ? -1 : 1) *
+          (SUMMONER_REINFORCEMENT_MIN_VERTICAL_OFFSET +
+            Math.random() * SUMMONER_REINFORCEMENT_VERTICAL_JITTER)
         const spawnOffsetZ = 0.9 + Math.random() * 0.95
         const summonedEnemy = new Enemy({
           formationPosition: [
             this.group.position.x + spawnOffsetX,
-            this.group.position.y,
+            this.group.position.y + spawnOffsetY,
             this.group.position.z + spawnOffsetZ,
           ],
           enemyKind: 'grunt',
           attackInterval: 1.55 / GLOBAL_FIRE_RATE_MULTIPLIER,
           projectileDamage: 0.095,
           projectileSpeed: 10.6 * 0.75,
+          isSummonerReinforcement: true,
+          reinforcementSourceMaxHealth: this.getMaxHealthValue(),
         })
 
         this.summonSpawner(summonedEnemy)
@@ -524,6 +568,11 @@ export class Enemy extends Actor {
           }
         },
         projectilePalette: getEnemyProjectilePalette(this.kind),
+        trailPrimary: this.kind === 'boss' ? 'rgba(216, 180, 254, 0.84)' : undefined,
+        trailAccent: this.kind === 'boss' ? 'rgba(251, 191, 36, 0.9)' : undefined,
+        trailParticleCount: this.kind === 'boss' ? 7 : undefined,
+        trailSpawnInterval: this.kind === 'boss' ? 0.035 : undefined,
+        trailLifetime: this.kind === 'boss' ? 0.26 : undefined,
         impactPrimary: getEnemyStyle(this.kind).primary,
         impactAccent: getEnemyStyle(this.kind).accent,
         spawnImpactEffect: this.effectSpawner ?? undefined,

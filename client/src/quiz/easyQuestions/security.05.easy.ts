@@ -10,7 +10,7 @@ const data = [
       "Assign broad admin roles to avoid permission-related deployment failures."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Enforce mutual authentication and explicit authorization at service boundaries. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Enforce mutual authentication and explicit authorization at service boundaries. "
   },
   {
     "id": "easy-security-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Grant minimal permissions and periodically remove unused access paths."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Grant minimal permissions and periodically remove unused access paths. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Grant minimal permissions and periodically remove unused access paths. "
   }
 ]
 

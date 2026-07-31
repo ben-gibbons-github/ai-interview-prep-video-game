@@ -10,7 +10,7 @@ const data = [
       "Ignore operational tooling until after core components are finalized."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Surface assumptions early and revisit them as the design evolves. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Surface assumptions early and revisit them as the design evolves. "
   },
   {
     "id": "easy-system-design-whiteboarding-01-q2",
@@ -23,7 +23,7 @@ const data = [
       "Discuss failure scenarios and mitigation strategies before implementation details."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Discuss failure scenarios and mitigation strategies before implementation details. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Discuss failure scenarios and mitigation strategies before implementation details. "
   }
 ]
 

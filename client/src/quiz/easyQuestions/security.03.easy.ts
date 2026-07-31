@@ -10,7 +10,7 @@ const data = [
       "Store long-lived keys in app configs so deployments are simpler to manage."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Prioritize vulnerabilities by exploitability and blast radius. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prioritize vulnerabilities by exploitability and blast radius. "
   },
   {
     "id": "easy-security-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Rely on network location alone as proof of identity between services."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Use short-lived credentials and rotate secrets through managed workflows. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Use short-lived credentials and rotate secrets through managed workflows. "
   }
 ]
 

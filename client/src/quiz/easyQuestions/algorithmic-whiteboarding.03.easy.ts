@@ -10,7 +10,7 @@ const data = [
       "Start coding immediately and refine requirements only after implementation."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Narrate invariants and failure paths while coding to show structured reasoning. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Narrate invariants and failure paths while coding to show structured reasoning. "
   },
   {
     "id": "easy-algorithmic-whiteboarding-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Hide uncertainty to appear confident, then patch logic silently."
     ],
     "correctIndex": 1,
-    "correctExplanation": "State constraints first, present a baseline, then improve with explicit tradeoffs. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "State constraints first, present a baseline, then improve with explicit tradeoffs. "
   }
 ]
 

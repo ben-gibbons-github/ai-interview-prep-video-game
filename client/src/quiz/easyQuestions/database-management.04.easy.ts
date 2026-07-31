@@ -10,7 +10,7 @@ const data = [
       "Run all workloads at serializable isolation regardless of throughput impact."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Profile workload first, then choose indexes that match dominant query patterns. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Profile workload first, then choose indexes that match dominant query patterns. "
   },
   {
     "id": "easy-database-management-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Skip backup drills because snapshots always restore exactly as expected."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Choose isolation level based on anomaly tolerance and critical invariants. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Choose isolation level based on anomaly tolerance and critical invariants. "
   }
 ]
 

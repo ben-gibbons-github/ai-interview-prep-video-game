@@ -10,7 +10,7 @@ const data = [
       "Prefer simpler linear passes when they satisfy latency and memory targets."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Prefer simpler linear passes when they satisfy latency and memory targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prefer simpler linear passes when they satisfy latency and memory targets. "
   },
   {
     "id": "easy-algorithmic-complexity-b-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Use worst-case complexity only for academic discussion, not architecture decisions."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Use complexity to forecast scaling risk before production traffic grows. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Use complexity to forecast scaling risk before production traffic grows. "
   }
 ]
 

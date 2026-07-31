@@ -1,5 +1,7 @@
 # Interview Prep Roguelite
 
+Live demo: https://ben-gibbons-github.github.io/interview-prep-roguelite-deploy/index.html
+
 A space-themed interview-prep game where each combat round is powered by technical and behavioral interview drills.
 
 ![Gameplay screenshot](game.png)

@@ -10,7 +10,7 @@ const data = [
       "Grant minimal permissions and periodically remove unused access paths."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Grant minimal permissions and periodically remove unused access paths. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Grant minimal permissions and periodically remove unused access paths. "
   },
   {
     "id": "easy-security-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Store long-lived keys in app configs so deployments are simpler to manage."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Prioritize vulnerabilities by exploitability and blast radius. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prioritize vulnerabilities by exploitability and blast radius. "
   }
 ]
 

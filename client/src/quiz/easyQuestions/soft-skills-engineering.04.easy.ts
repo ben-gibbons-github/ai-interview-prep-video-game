@@ -10,7 +10,7 @@ const data = [
       "Settle disagreements by escalation before exploring shared constraints."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Communicate decisions with context, alternatives, and explicit risks. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Communicate decisions with context, alternatives, and explicit risks. "
   },
   {
     "id": "easy-soft-skills-engineering-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Limit incident updates to final resolution notes to avoid interruptions."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Give specific, behavior-focused feedback tied to outcomes and next steps. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Give specific, behavior-focused feedback tied to outcomes and next steps. "
   }
 ]
 

@@ -51,6 +51,7 @@ import {
 
 const ROUND_FREEZE_SECONDS = 60
 // const ROUND_FREEZE_SECONDS = 0
+const INITIAL_EASY_DIFFICULTY_GRACE_QUESTIONS = 5
 const FREEZE_SECONDS_PER_CORRECT_ANSWER = 1
 const GOLD_PER_CORRECT_ANSWER = 2
 const SCORE_PER_CORRECT_ANSWER_BASE = 5
@@ -403,6 +404,7 @@ interface UseQuizManagerParams {
   postOverlay: (payload: OverlayPayload) => string
   syncPlayerState: (player: Player) => void
   runLaunchConfig?: RunLaunchConfig
+  currentRound?: number
   onQuizStreakChange?: (streak: number) => void
   onCorrectAnswerCelebration?: () => void
 }
@@ -444,6 +446,9 @@ export interface QuizManagerApi {
   quizFreezeActive: boolean
   quizFreezeFading: boolean
   quizFreezeSecondsLeft: number
+  quizGraceQuestionModeActive: boolean
+  quizGraceQuestionsAnswered: number
+  quizGraceQuestionsRequired: number
   nextQuestionDelaySecondsLeft: number
   quizCorrectAnswers: number
   quizTotalAnswered: number
@@ -487,6 +492,7 @@ export function useQuizManager({
   postOverlay,
   syncPlayerState,
   runLaunchConfig,
+  currentRound = 1,
   onQuizStreakChange,
   onCorrectAnswerCelebration,
 }: UseQuizManagerParams): QuizManagerApi {
@@ -509,6 +515,8 @@ export function useQuizManager({
   const quizFreezeFadeTimeoutRef = useRef<number | null>(null)
   const lastQuestionKindRef = useRef<QuizQuestionKind | null>(null)
   const priorityQuestionIdsRef = useRef<string[]>([])
+  const initialGraceQuestionModeActiveRef = useRef(false)
+  const pendingRoundStartFreezeRef = useRef(false)
 
   const [quizActive, setQuizActive] = useState(false)
   const [quizQuestion, setQuizQuestion] = useState<QuizQuestion | null>(null)
@@ -519,6 +527,8 @@ export function useQuizManager({
   const [quizFreezeActive, setQuizFreezeActive] = useState(false)
   const [quizFreezeFading, setQuizFreezeFading] = useState(false)
   const [quizFreezeSecondsLeft, setQuizFreezeSecondsLeft] = useState(0)
+  const [quizGraceQuestionModeActive, setQuizGraceQuestionModeActive] = useState(false)
+  const [quizGraceQuestionsAnswered, setQuizGraceQuestionsAnswered] = useState(0)
   const [nextQuestionDelaySecondsLeft, setNextQuestionDelaySecondsLeft] = useState(0)
   const [quizCorrectAnswers, setQuizCorrectAnswers] = useState(0)
   const [quizTotalAnswered, setQuizTotalAnswered] = useState(0)
@@ -557,6 +567,47 @@ export function useQuizManager({
     runLaunchConfig?.chaosArtifactId === 'no-question-heal-damage-lifesteal'
   const activeFocusFiltersSignature = JSON.stringify(getActiveQuizFocusFilters())
 
+  const shouldUseInitialEasyDifficultyGraceMode = useCallback((totalAnswered: number) => {
+    return (
+      (runLaunchConfig?.difficultyLevel ?? 0) === 0 &&
+      currentRound === 1 &&
+      totalAnswered < INITIAL_EASY_DIFFICULTY_GRACE_QUESTIONS
+    )
+  }, [currentRound, runLaunchConfig?.difficultyLevel])
+
+  const syncInitialEasyDifficultyGraceMode = useCallback((totalAnswered: number) => {
+    const normalizedAnswered = Math.max(0, Math.floor(totalAnswered))
+    const previousGraceState = initialGraceQuestionModeActiveRef.current
+    const shouldEnableGraceMode = shouldUseInitialEasyDifficultyGraceMode(normalizedAnswered)
+    initialGraceQuestionModeActiveRef.current = shouldEnableGraceMode
+    setQuizGraceQuestionModeActive(shouldEnableGraceMode)
+    setQuizGraceQuestionsAnswered(
+      Math.min(INITIAL_EASY_DIFFICULTY_GRACE_QUESTIONS, normalizedAnswered),
+    )
+
+    if (shouldEnableGraceMode) {
+      if (quizFreezeFadeTimeoutRef.current !== null) {
+        window.clearTimeout(quizFreezeFadeTimeoutRef.current)
+        quizFreezeFadeTimeoutRef.current = null
+      }
+
+      setQuizFreezeActive(true)
+      setQuizFreezeFading(false)
+      setQuizFreezeSecondsLeft(0)
+      return
+    }
+
+    if (previousGraceState && !shouldEnableGraceMode) {
+      pendingRoundStartFreezeRef.current = true
+    }
+
+    if (quizFreezeRemainingRef.current <= 0) {
+      setQuizFreezeActive(false)
+      setQuizFreezeFading(false)
+      setQuizFreezeSecondsLeft(0)
+    }
+  }, [shouldUseInitialEasyDifficultyGraceMode])
+
   const getCorrectAnswersForProgression = useCallback((correctAnswers: number) => {
     return Math.max(0, correctAnswers) * fastRoundsProgressMultiplier
   }, [fastRoundsProgressMultiplier])
@@ -580,6 +631,10 @@ export function useQuizManager({
   useEffect(() => {
     quizCorrectNeededForNextLifeRef.current = quizCorrectNeededForNextLife
   }, [quizCorrectNeededForNextLife])
+
+  useEffect(() => {
+    syncInitialEasyDifficultyGraceMode(quizTotalAnswered)
+  }, [quizTotalAnswered, syncInitialEasyDifficultyGraceMode])
 
   const setPriorityQuestionQueue = useCallback((questionIds: string[]) => {
     const dedupedIds = Array.from(
@@ -761,6 +816,13 @@ export function useQuizManager({
       quizFreezeFadeTimeoutRef.current = null
     }
 
+    if (initialGraceQuestionModeActiveRef.current) {
+      setQuizFreezeActive(true)
+      setQuizFreezeFading(false)
+      setQuizFreezeSecondsLeft(0)
+      return
+    }
+
     setQuizFreezeActive(true)
     setQuizFreezeFading(false)
   }, [])
@@ -777,13 +839,47 @@ export function useQuizManager({
   }, [])
 
   const grantRoundStartFreeze = useCallback(() => {
+    pendingRoundStartFreezeRef.current = true
     const quizFreezeBonusSeconds = playerRef.current?.getArtifactStats().quizFreezeDurationSeconds ?? 0
     const roundStartFreeze = (ROUND_FREEZE_SECONDS + quizFreezeBonusSeconds) * roundStartFreezeMultiplier
     setFreezeRemaining(Math.max(quizFreezeRemainingRef.current, roundStartFreeze))
     setNextQuestionDelayRemaining(0)
   }, [playerRef, roundStartFreezeMultiplier, setFreezeRemaining, setNextQuestionDelayRemaining])
 
+  const maybeApplyFreezeForDisplayedQuestion = useCallback(() => {
+    if (quizAnswerResult !== null || quizQuestion === null) {
+      return
+    }
+
+    if (initialGraceQuestionModeActiveRef.current) {
+      syncInitialEasyDifficultyGraceMode(quizTotalAnswered)
+      setNextQuestionDelayRemaining(0)
+      return
+    }
+
+    if (
+      pendingRoundStartFreezeRef.current &&
+      quizFreezeRemainingRef.current <= 0 &&
+      nextQuestionDelayRemainingRef.current <= 0
+    ) {
+      pendingRoundStartFreezeRef.current = false
+      startRoundFreeze()
+    }
+  }, [
+    quizAnswerResult,
+    quizQuestion,
+    quizTotalAnswered,
+    setNextQuestionDelayRemaining,
+    startRoundFreeze,
+    syncInitialEasyDifficultyGraceMode,
+  ])
+
   const applyIncorrectAnswerTimeout = useCallback(() => {
+    if (initialGraceQuestionModeActiveRef.current) {
+      setNextQuestionDelayRemaining(0)
+      return 0
+    }
+
     const freezeBankSeconds = Math.max(0, quizFreezeRemainingRef.current)
     const timeoutSeconds = Math.max(0, NEXT_QUESTION_TIMEOUT_SECONDS - freezeBankSeconds)
     setFreezeRemaining(0)
@@ -826,10 +922,11 @@ export function useQuizManager({
     const questionAnswerHealingMultiplier = player.getQuestionAnswerHealingMultiplier()
     const difficultyScoreMultiplier = getQuestionDifficultyScoreMultiplier(question)
     const scoreBonus = SCORE_PER_CORRECT_ANSWER_BASE * difficultyScoreMultiplier
-    const questionGoldReward = GOLD_PER_CORRECT_ANSWER * goldMultiplier * runWideGoldMultiplier
+    const questionGoldReward = player.addGold(GOLD_PER_CORRECT_ANSWER * goldMultiplier, {
+      artifactMultiplierApplied: true,
+    })
 
     player.addQuizScoreBonus(scoreBonus)
-    player.addGold(GOLD_PER_CORRECT_ANSWER * goldMultiplier, { artifactMultiplierApplied: true })
     player.addFlatMaxHealth(MAX_HEALTH_PER_CORRECT_ANSWER * questionBonusGoldMultiplier * fastRoundsRewardMultiplier)
     player.addFlatMaxShield(MAX_SHIELD_PER_CORRECT_ANSWER * questionBonusGoldMultiplier * fastRoundsRewardMultiplier)
     const questionHealingDisabledByArtifacts = player.isQuestionHealingDisabledByArtifacts()
@@ -849,14 +946,12 @@ export function useQuizManager({
     }
 
     const streakBaseGoldReward = player.getStreakGoldBonusForStreak(quizCorrectStreakRef.current)
-    if (streakBaseGoldReward > 0) {
-      player.addGold(streakBaseGoldReward)
-    }
-
-    const streakGoldReward = streakBaseGoldReward * anyGainGoldMultiplier * runWideGoldMultiplier
+    const streakGoldReward = streakBaseGoldReward > 0 ? player.addGold(streakBaseGoldReward) : 0
     const totalGoldReward = questionGoldReward + streakGoldReward
 
-    setFreezeRemaining(quizFreezeRemainingRef.current + FREEZE_SECONDS_PER_CORRECT_ANSWER)
+    if (!initialGraceQuestionModeActiveRef.current) {
+      setFreezeRemaining(quizFreezeRemainingRef.current + FREEZE_SECONDS_PER_CORRECT_ANSWER)
+    }
     player.triggerCorrectAnswerArtifactEffects(question.kind)
 
     return {
@@ -892,14 +987,15 @@ export function useQuizManager({
 
     if (player.shouldReplaceQuestionBuffsWithGold()) {
       const replacementGold = player.getReplacementGoldPerQuestionBuff() * rewardMultiplier
+      let creditedReplacementGold = 0
       if (replacementGold > 0) {
-        player.addGold(replacementGold)
+        creditedReplacementGold = player.addGold(replacementGold)
       }
 
       return {
         buffType,
         rewardMultiplier,
-        rewardLabel: `+${Math.round(replacementGold)} gold instead of question buffs`,
+        rewardLabel: `+${Math.round(creditedReplacementGold)} gold instead of question buffs`,
       }
     }
 
@@ -2036,6 +2132,14 @@ export function useQuizManager({
     }
   }, [handleAdvanceQuizQuestion, nextQuestionDelaySecondsLeft, quizActive, quizAnswerResult, quizCorrectAnswers, quizQuestion])
 
+  useEffect(() => {
+    if (!quizActive || quizQuestion === null || quizAnswerResult !== null) {
+      return
+    }
+
+    maybeApplyFreezeForDisplayedQuestion()
+  }, [maybeApplyFreezeForDisplayedQuestion, quizActive, quizAnswerResult, quizQuestion])
+
   const tickFreeze = useCallback((delta: number) => {
     if (quizFreezeRemainingRef.current <= 0) {
       if (nextQuestionDelayRemainingRef.current <= 0) {
@@ -2053,7 +2157,11 @@ export function useQuizManager({
   }, [setFreezeRemaining, setNextQuestionDelayRemaining])
 
   const getIsQuizPaused = useCallback(() => {
-    return quizCombatSignatureRef.current && (quizPauseCombatRef.current || quizFreezeRemainingRef.current > 0)
+    return quizCombatSignatureRef.current && (
+      quizPauseCombatRef.current ||
+      quizFreezeRemainingRef.current > 0 ||
+      initialGraceQuestionModeActiveRef.current
+    )
   }, [])
 
   const handleCombatQuizVisibility = useCallback(
@@ -2064,6 +2172,7 @@ export function useQuizManager({
 
       quizCombatSignatureRef.current = shouldShowQuiz
       if (shouldShowQuiz) {
+        pendingRoundStartFreezeRef.current = true
         const hasInProgressQuestion = quizQuestion !== null && quizAnswerResult === null
 
         if (!hasInProgressQuestion) {
@@ -2074,16 +2183,17 @@ export function useQuizManager({
           }
         }
 
-        startRoundFreeze()
+        maybeApplyFreezeForDisplayedQuestion()
       } else {
         quizPauseCombatRef.current = false
+        pendingRoundStartFreezeRef.current = false
         setFreezeRemaining(0)
       }
 
       setQuizActive(shouldShowQuiz)
       return true
     },
-    [handleAdvanceQuizQuestion, quizAnswerResult, quizQuestion, setFreezeRemaining, startRoundFreeze],
+    [handleAdvanceQuizQuestion, maybeApplyFreezeForDisplayedQuestion, quizAnswerResult, quizQuestion, setFreezeRemaining],
   )
 
   const resetQuizState = useCallback(() => {
@@ -2093,6 +2203,8 @@ export function useQuizManager({
     quizFreezeRemainingRef.current = 0
     nextQuestionDelayRemainingRef.current = 0
     quizCorrectStreakRef.current = 0
+    initialGraceQuestionModeActiveRef.current = false
+    pendingRoundStartFreezeRef.current = false
     onQuizStreakChange?.(0)
 
     if (quizFreezeFadeTimeoutRef.current !== null) {
@@ -2109,6 +2221,8 @@ export function useQuizManager({
     setQuizFreezeActive(false)
     setQuizFreezeFading(false)
     setQuizFreezeSecondsLeft(0)
+    setQuizGraceQuestionModeActive(false)
+    setQuizGraceQuestionsAnswered(0)
     setNextQuestionDelaySecondsLeft(0)
     setQuizCorrectAnswers(0)
     setQuizTotalAnswered(0)
@@ -2265,6 +2379,7 @@ export function useQuizManager({
 
     setQuizCorrectAnswers(nextCorrectAnswers)
     setQuizTotalAnswered(nextTotalAnswered)
+    syncInitialEasyDifficultyGraceMode(nextTotalAnswered)
     setQuizAnsweredByDifficulty(nextAnsweredByDifficulty)
     setQuizAnsweredByType(nextAnsweredByType)
     quizAutoAnsweredCountRef.current = nextAutoAnsweredCount
@@ -2300,7 +2415,7 @@ export function useQuizManager({
     const nextRoundBuff = rollRoundQuizBuffType()
     upcomingRoundQuizBuffRef.current = nextRoundBuff
     setQuizUpcomingBuffLabel(formatRoundBuffRewardLabel(nextRoundBuff, getRoundBuffRewardMultiplier(nextQuestion)))
-  }, [enqueuePriorityQuestionId, setFreezeRemaining, setNextQuestionDelayRemaining, setPriorityQuestionQueue])
+  }, [enqueuePriorityQuestionId, setFreezeRemaining, setNextQuestionDelayRemaining, setPriorityQuestionQueue, syncInitialEasyDifficultyGraceMode])
 
   return {
     quizActive,
@@ -2312,6 +2427,9 @@ export function useQuizManager({
     quizFreezeActive,
     quizFreezeFading,
     quizFreezeSecondsLeft,
+    quizGraceQuestionModeActive,
+    quizGraceQuestionsAnswered,
+    quizGraceQuestionsRequired: INITIAL_EASY_DIFFICULTY_GRACE_QUESTIONS,
     nextQuestionDelaySecondsLeft,
     quizCorrectAnswers,
     quizTotalAnswered,

@@ -10,7 +10,7 @@ const data = [
       "Test recovery runbooks regularly with realistic restore-time targets."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Test recovery runbooks regularly with realistic restore-time targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Test recovery runbooks regularly with realistic restore-time targets. "
   },
   {
     "id": "easy-database-management-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Add indexes to every column to guarantee better performance in all cases."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Partition by access patterns and enforce key distribution to reduce hotspots. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Partition by access patterns and enforce key distribution to reduce hotspots. "
   }
 ]
 

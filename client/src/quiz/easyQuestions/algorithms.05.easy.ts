@@ -10,7 +10,7 @@ const data = [
       "Implement DP by memoizing everything, even unrelated states."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Validate greedy choice property before relying on local-optimum decisions. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Validate greedy choice property before relying on local-optimum decisions. "
   },
   {
     "id": "easy-algorithms-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Define state transitions and overlapping subproblems before coding DP."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Define state transitions and overlapping subproblems before coding DP. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Define state transitions and overlapping subproblems before coding DP. "
   }
 ]
 

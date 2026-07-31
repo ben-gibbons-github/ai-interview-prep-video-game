@@ -1144,14 +1144,14 @@ export class Player extends Actor {
 
   addGold(amount: number, options?: { artifactMultiplierApplied?: boolean }) {
     if (amount <= 0) {
-      return
+      return 0
     }
 
     const shouldApplyArtifactMultiplier = options?.artifactMultiplierApplied !== true
     const artifactMultiplier = shouldApplyArtifactMultiplier ? this.getGlobalGoldMultiplierForAnyGain() : 1
     const creditedGold = amount * artifactMultiplier * this.runGoldMultiplier
     if (creditedGold <= 0) {
-      return
+      return 0
     }
 
     this.gold += creditedGold
@@ -1164,6 +1164,8 @@ export class Player extends Actor {
     if (this.healthHealPercentPerGoldGain > 0) {
       this.healHealthPercent(creditedGold * this.healthHealPercentPerGoldGain)
     }
+
+    return creditedGold
   }
 
   setGoldPerKill(amount: number) {
@@ -1972,7 +1974,9 @@ export class Player extends Actor {
         source: this,
         target,
         damageAmount: Player.QUESTION_NUKE_DAMAGE,
+        splashDamageRatio: 0.1,
         spawnEffect: this.effectSpawner,
+        getSplashTargets: () => this.attackTargets,
         onKillTarget: (killedTarget) => {
           this.onEnemyKilled(killedTarget)
         },
@@ -1999,6 +2003,10 @@ export class Player extends Actor {
 
   getArtifactIds() {
     return this.artifacts.map((artifact) => artifact.id)
+  }
+
+  getArtifacts(): readonly Artifact[] {
+    return this.artifacts
   }
 
   getGlobalGoldMultiplierForAnyGain(): number {
@@ -2092,6 +2100,46 @@ export class Player extends Actor {
         }
       })
       .sort((left, right) => left.artifactName.localeCompare(right.artifactName))
+  }
+
+  getRunGoldMultiplier() {
+    return this.runGoldMultiplier
+  }
+
+  getKillGoldMultiplier() {
+    return this.killGoldMultiplier
+  }
+
+  getGoldPerKillBaseValue() {
+    return this.goldPerKill
+  }
+
+  getGoldOnHitChance() {
+    return this.goldOnHitChance
+  }
+
+  getGoldOnHitAmount() {
+    return this.goldOnHitAmount
+  }
+
+  getStreakGoldThreshold() {
+    return this.streakGoldThreshold
+  }
+
+  getStreakGoldBaseBonus() {
+    return this.streakGoldBonus
+  }
+
+  getMaxHealthGainMultiplier() {
+    return this.maxHealthGainMultiplier
+  }
+
+  getMaxShieldGainMultiplier() {
+    return this.maxShieldGainMultiplier
+  }
+
+  getBaseAttackIntervalSeconds() {
+    return this.baseAttackInterval
   }
 
   getStateSnapshot(): PlayerStateSnapshot {
@@ -2284,14 +2332,13 @@ export class Player extends Actor {
     if (this.goldPerKill > 0) {
       const artifactMultiplier = this.getGlobalGoldMultiplierForEnemyKill()
       const preRunGoldReward = this.goldPerKill * this.killGoldMultiplier * artifactMultiplier
-      goldReward = preRunGoldReward * this.runGoldMultiplier
+      goldReward = this.addGold(preRunGoldReward, { artifactMultiplierApplied: true })
       killGoldBreakdown = {
         base: this.goldPerKill,
         killMultiplier: this.killGoldMultiplier,
         artifactMultiplier,
         runMultiplier: this.runGoldMultiplier,
       }
-      this.addGold(preRunGoldReward, { artifactMultiplierApplied: true })
     }
 
     if (target && goldReward > 0 && this.enemyKillGoldListener) {

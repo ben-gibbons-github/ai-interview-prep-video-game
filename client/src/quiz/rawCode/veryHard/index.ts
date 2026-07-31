@@ -258,13 +258,13 @@ const data: RawCodingQuestionData[] = [
     id: 'raw-coding-very-hard-kth-smallest-bst-0018',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Kth Smallest Element In BST)\n\nImplement `solve(input)` where `input = { tree: (number|null)[], k: number }`. `tree` is level-order BST with null placeholders. Return kth smallest value.',
+      'Raw Coding Challenge (Type: Trees | Kth Smallest Element In BST)\n\nImplement `solve(input)` where `input = { root: TreeNode | null, k: number }` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return kth smallest value.',
     correctExplanation:
-      'Inorder traversal (left, node, right) of BST visits nodes in ascending order. Count nodes visited and return the kth. Time O(n) worst, O(k) best, Space O(h). Example: tree [3,1,4,null,2], k=1 → inorder: [1,2,3,4] → 1st smallest is 1.' ,
+      'Inorder traversal (left, node, right) of BST visits nodes in ascending order. Count nodes visited and return the kth. Time O(n) worst, O(k) best, Space O(h). Example: root 3 with left 1 (right child 2) and right 4, k=1 → inorder: [1,2,3,4] → 1st smallest is 1.' ,
     tests: [
-      { input: [{ tree: [3, 1, 4, null, 2], k: 1 }], expected: 1 },
-      { input: [{ tree: [5, 3, 6, 2, 4, null, null, 1], k: 3 }], expected: 3 },
-      { input: [{ tree: [2, 1, 3], k: 2 }], expected: 2 },
+      { input: [{ root: { val: 3, left: { val: 1, left: null, right: { val: 2, left: null, right: null } }, right: { val: 4, left: null, right: null } }, k: 1 }], expected: 1 },
+      { input: [{ root: { val: 5, left: { val: 3, left: { val: 2, left: { val: 1, left: null, right: null }, right: null }, right: { val: 4, left: null, right: null } }, right: { val: 6, left: null, right: null } }, k: 3 }], expected: 3 },
+      { input: [{ root: { val: 2, left: { val: 1, left: null, right: null }, right: { val: 3, left: null, right: null } }, k: 2 }], expected: 2 },
     ],
   },
   {
@@ -520,13 +520,13 @@ const data: RawCodingQuestionData[] = [
     id: 'raw-coding-very-hard-binary-tree-maximum-path-sum-0042',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Binary Tree Maximum Path Sum)\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree. Return the maximum path sum in the tree, where a path can start and end at any nodes but must move parent-child along edges.',
+      'Raw Coding Challenge (Type: Trees | Binary Tree Maximum Path Sum)\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return the maximum path sum in the tree, where a path can start and end at any nodes but must move parent-child along edges.',
     correctExplanation:
       'Use postorder DFS. For each node, compute the best downward path that can be extended to the parent, and separately update a global maximum using node value plus the best left and right contributions. Negative contributions should be clamped to zero when extending upward. Time O(n), Space O(h).',
     tests: [
-      { input: [[1, 2, 3]], expected: 6 },
-      { input: [[-10, 9, 20, null, null, 15, 7]], expected: 42 },
-      { input: [[-3]], expected: -3 },
+      { input: [{ val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: null, right: null } }], expected: 6 },
+      { input: [{ val: -10, left: { val: 9, left: null, right: null }, right: { val: 20, left: { val: 15, left: null, right: null }, right: { val: 7, left: null, right: null } } }], expected: 42 },
+      { input: [{ val: -3, left: null, right: null }], expected: -3 },
     ],
   },
   {
@@ -572,52 +572,52 @@ const data: RawCodingQuestionData[] = [
     id: 'raw-coding-very-hard-diameter-binary-tree-0046',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Diameter Of Binary Tree)\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree. Return the diameter of the tree measured in edges.',
+      'Raw Coding Challenge (Type: Trees | Diameter Of Binary Tree)\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return the diameter of the tree measured in edges.',
     correctExplanation:
       'Use postorder DFS to compute subtree heights while updating a global maximum of leftHeight + rightHeight at each node. The diameter is the longest path between any two nodes, counted in edges. Time O(n), Space O(h).',
     tests: [
-      { input: [[1, 2, 3, 4, 5]], expected: 3 },
-      { input: [[1, 2]], expected: 1 },
-      { input: [[1]], expected: 0 },
+      { input: [{ val: 1, left: { val: 2, left: { val: 4, left: null, right: null }, right: { val: 5, left: null, right: null } }, right: { val: 3, left: null, right: null } }], expected: 3 },
+      { input: [{ val: 1, left: { val: 2, left: null, right: null }, right: null }], expected: 1 },
+      { input: [{ val: 1, left: null, right: null }], expected: 0 },
     ],
   },
   {
     id: 'raw-coding-very-hard-binary-tree-right-side-view-0037',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Binary Tree Right Side View)\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree. Return the values visible from the right side, top to bottom.',
+      'Raw Coding Challenge (Type: Trees | Binary Tree Right Side View)\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return the values visible from the right side, top to bottom.',
     correctExplanation:
-      'Traverse level by level and record the last non-null node seen at each depth, or do a right-first DFS and capture the first node encountered at each depth. Time O(n), Space O(n). Example: [1,2,3,null,5,null,4] → right side view [1,3,4].',
+      'Traverse level by level and record the last node seen at each depth, or do a right-first DFS and capture the first node encountered at each depth. Time O(n), Space O(n). Example: root 1, children 2 and 3, with 2.right=5 and 3.right=4 → right side view [1,3,4].',
     tests: [
-      { input: [[1, 2, 3, null, 5, null, 4]], expected: [1, 3, 4] },
-      { input: [[1, null, 3]], expected: [1, 3] },
-      { input: [[]], expected: [] },
+      { input: [{ val: 1, left: { val: 2, left: null, right: { val: 5, left: null, right: null } }, right: { val: 3, left: null, right: { val: 4, left: null, right: null } } }], expected: [1, 3, 4] },
+      { input: [{ val: 1, left: null, right: { val: 3, left: null, right: null } }], expected: [1, 3] },
+      { input: [null], expected: [] },
     ],
   },
   {
     id: 'raw-coding-very-hard-validate-bst-0038',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Validate Binary Search Tree)\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree. Return true if the tree is a valid BST, otherwise false.',
+      'Raw Coding Challenge (Type: Trees | Validate Binary Search Tree)\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return true if the tree is a valid BST, otherwise false.',
     correctExplanation:
-      'Validate with recursive lower/upper bounds or an inorder traversal that must be strictly increasing. Every node in the left subtree must be less than the node, and every node in the right subtree must be greater. Time O(n), Space O(h). Example: [2,1,3] is valid; [5,1,4,null,null,3,6] is invalid because 3 is in the right subtree of 5 but is less than 5.',
+      'Validate with recursive lower/upper bounds or an inorder traversal that must be strictly increasing. Every node in the left subtree must be less than the node, and every node in the right subtree must be greater. Time O(n), Space O(h). Example: root 2 with children 1 and 3 is valid; root 5 with right child 4 and 4.left=3 is invalid because 3 appears in the right subtree of 5 but is less than 5.',
     tests: [
-      { input: [[2, 1, 3]], expected: true },
-      { input: [[5, 1, 4, null, null, 3, 6]], expected: false },
-      { input: [[1]], expected: true },
+      { input: [{ val: 2, left: { val: 1, left: null, right: null }, right: { val: 3, left: null, right: null } }], expected: true },
+      { input: [{ val: 5, left: { val: 1, left: null, right: null }, right: { val: 4, left: { val: 3, left: null, right: null }, right: { val: 6, left: null, right: null } } }], expected: false },
+      { input: [{ val: 1, left: null, right: null }], expected: true },
     ],
   },
   {
     id: 'raw-coding-very-hard-lowest-common-ancestor-bst-0039',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Lowest Common Ancestor In BST)\n\nImplement `solve(input)` where `input = { tree: (number|null)[], p: number, q: number }`. The tree is a valid BST and both values exist. Return the value of their lowest common ancestor.',
+      'Raw Coding Challenge (Type: Trees | Lowest Common Ancestor In BST)\n\nImplement `solve(input)` where `input = { root: TreeNode | null, p: number, q: number }` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. The tree is a valid BST and both values exist. Return the value of their lowest common ancestor.',
     correctExplanation:
-      'Use the BST ordering property. If both targets are smaller than the current node, move left; if both are larger, move right; otherwise the current node is the split point and therefore the LCA. Time O(h), Space O(1). Example: [6,2,8,0,4,7,9,null,null,3,5], p=2, q=8 → split at 6, so answer is 6.',
+      'Use the BST ordering property. If both targets are smaller than the current node, move left; if both are larger, move right; otherwise the current node is the split point and therefore the LCA. Time O(h), Space O(1).',
     tests: [
-      { input: [{ tree: [6, 2, 8, 0, 4, 7, 9, null, null, 3, 5], p: 2, q: 8 }], expected: 6 },
-      { input: [{ tree: [6, 2, 8, 0, 4, 7, 9, null, null, 3, 5], p: 2, q: 4 }], expected: 2 },
-      { input: [{ tree: [2, 1], p: 2, q: 1 }], expected: 2 },
+      { input: [{ root: { val: 6, left: { val: 2, left: { val: 0, left: null, right: null }, right: { val: 4, left: { val: 3, left: null, right: null }, right: { val: 5, left: null, right: null } } }, right: { val: 8, left: { val: 7, left: null, right: null }, right: { val: 9, left: null, right: null } } }, p: 2, q: 8 }], expected: 6 },
+      { input: [{ root: { val: 6, left: { val: 2, left: { val: 0, left: null, right: null }, right: { val: 4, left: { val: 3, left: null, right: null }, right: { val: 5, left: null, right: null } } }, right: { val: 8, left: { val: 7, left: null, right: null }, right: { val: 9, left: null, right: null } } }, p: 2, q: 4 }], expected: 2 },
+      { input: [{ root: { val: 2, left: { val: 1, left: null, right: null }, right: null }, p: 2, q: 1 }], expected: 2 },
     ],
   },
   {
@@ -637,13 +637,13 @@ const data: RawCodingQuestionData[] = [
     id: 'raw-coding-very-hard-binary-tree-serialize-0041',
     difficulty: 'veryHard',
     prompt:
-      'Raw Coding Challenge (Type: Trees | Serialize Binary Tree)\n\nImplement `solve(input)` where `input = (number|null)[]` level-order tree. Return a normalized level-order serialization that trims trailing nulls but preserves interior nulls.',
+      'Raw Coding Challenge (Type: Trees | Serialize Binary Tree)\n\nImplement `solve(input)` where `input = TreeNode | null` and `TreeNode = { val: number, left: TreeNode | null, right: TreeNode | null }`. Return a normalized level-order serialization that trims trailing nulls but preserves interior nulls.',
     correctExplanation:
-      'Rebuild the tree shape from the level-order array, then emit level-order output including interior null placeholders needed to preserve shape. Finally trim only trailing nulls. Time O(n), Space O(n). Example: [1,2,3,null,null,4,5] stays [1,2,3,null,null,4,5], while [1,null,2,null,null] trims to [1,null,2].',
+      'Traverse the provided tree object in level-order and emit values with interior null placeholders needed to preserve shape. Finally trim only trailing nulls. Time O(n), Space O(n). Example: root 1 with left 2 and right 3, and 3 having children 4 and 5 serializes to [1,2,3,null,null,4,5].',
     tests: [
-      { input: [[1, 2, 3, null, null, 4, 5]], expected: [1, 2, 3, null, null, 4, 5] },
-      { input: [[1, null, 2, null, null]], expected: [1, null, 2] },
-      { input: [[]], expected: [] },
+      { input: [{ val: 1, left: { val: 2, left: null, right: null }, right: { val: 3, left: { val: 4, left: null, right: null }, right: { val: 5, left: null, right: null } } }], expected: [1, 2, 3, null, null, 4, 5] },
+      { input: [{ val: 1, left: null, right: { val: 2, left: null, right: null } }], expected: [1, null, 2] },
+      { input: [null], expected: [] },
     ],
   },
 ]

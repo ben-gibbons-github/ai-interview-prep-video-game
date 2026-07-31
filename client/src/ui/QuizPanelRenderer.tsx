@@ -227,6 +227,9 @@ export function QuizPanelRenderer({
     quizFreezeActive,
     quizFreezeFading,
     quizFreezeSecondsLeft,
+    quizGraceQuestionModeActive,
+    quizGraceQuestionsAnswered,
+    quizGraceQuestionsRequired,
     nextQuestionDelaySecondsLeft,
     quizCorrectAnswers,
     quizTotalAnswered,
@@ -610,8 +613,19 @@ export function QuizPanelRenderer({
       quizFreezeActive,
       quizFreezeFading,
       quizFreezeSecondsLeft,
+      quizGraceQuestionModeActive,
+      quizGraceQuestionsAnswered,
+      quizGraceQuestionsRequired,
     })
-  }, [onFreezeUiStateChange, quizFreezeActive, quizFreezeFading, quizFreezeSecondsLeft])
+  }, [
+    onFreezeUiStateChange,
+    quizFreezeActive,
+    quizFreezeFading,
+    quizFreezeSecondsLeft,
+    quizGraceQuestionModeActive,
+    quizGraceQuestionsAnswered,
+    quizGraceQuestionsRequired,
+  ])
 
   useEffect(() => {
     const clearMicOnlyModalTimer = () => {

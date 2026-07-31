@@ -10,7 +10,7 @@ const data = [
       "Alert on user-facing SLO signals first, then supporting host metrics."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Alert on user-facing SLO signals first, then supporting host metrics. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Alert on user-facing SLO signals first, then supporting host metrics. "
   },
   {
     "id": "easy-sysadmin-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Apply all patches directly in production first to detect failures quickly."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Practice rollback and failover operations before incidents happen. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Practice rollback and failover operations before incidents happen. "
   }
 ]
 

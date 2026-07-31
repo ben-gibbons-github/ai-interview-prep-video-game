@@ -10,7 +10,7 @@ const data = [
       "Treat all storage tiers as interchangeable for consistency and latency."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Define requirements, estimate scale, then justify architecture against bottlenecks. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Define requirements, estimate scale, then justify architecture against bottlenecks. "
   },
   {
     "id": "easy-system-design-whiteboarding-00-q2",
@@ -23,7 +23,7 @@ const data = [
       "Ignore operational tooling until after core components are finalized."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Surface assumptions early and revisit them as the design evolves. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Surface assumptions early and revisit them as the design evolves. "
   }
 ]
 

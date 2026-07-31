@@ -10,7 +10,7 @@ const data = [
       "Use worst-case complexity only for academic discussion, not architecture decisions."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Use complexity to forecast scaling risk before production traffic grows. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Use complexity to forecast scaling risk before production traffic grows. "
   },
   {
     "id": "easy-algorithmic-complexity-b-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Ignore constant factors entirely when N is small but response times are strict."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Evaluate growth rates with realistic N ranges and workload distributions. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Evaluate growth rates with realistic N ranges and workload distributions. "
   }
 ]
 

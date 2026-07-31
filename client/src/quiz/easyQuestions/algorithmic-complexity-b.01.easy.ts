@@ -10,7 +10,7 @@ const data = [
       "Optimize for best-case input because real traffic is usually clean."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Document both worst-case and expected-case complexity when behavior diverges. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Document both worst-case and expected-case complexity when behavior diverges. "
   },
   {
     "id": "easy-algorithmic-complexity-b-01-q2",
@@ -23,7 +23,7 @@ const data = [
       "Prefer simpler linear passes when they satisfy latency and memory targets."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Prefer simpler linear passes when they satisfy latency and memory targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prefer simpler linear passes when they satisfy latency and memory targets. "
   }
 ]
 

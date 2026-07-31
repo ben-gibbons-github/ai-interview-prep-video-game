@@ -10,7 +10,7 @@ const data = [
       "Draw a final architecture immediately and backfill assumptions afterward."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Explain tradeoffs explicitly across consistency, latency, cost, and operability. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Explain tradeoffs explicitly across consistency, latency, cost, and operability. "
   },
   {
     "id": "easy-system-design-whiteboarding-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Skip traffic estimates because autoscaling can handle unknown demand."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Define requirements, estimate scale, then justify architecture against bottlenecks. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Define requirements, estimate scale, then justify architecture against bottlenecks. "
   }
 ]
 

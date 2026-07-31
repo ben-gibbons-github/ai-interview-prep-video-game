@@ -10,7 +10,7 @@ const data = [
       "Use identical growth plans for all engineers to ensure fairness."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Delegate with clear ownership boundaries, expected outcomes, and review points. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Delegate with clear ownership boundaries, expected outcomes, and review points. "
   },
   {
     "id": "easy-management-skills-engineering-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Develop engineers through targeted goals, feedback loops, and stretch assignments."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Develop engineers through targeted goals, feedback loops, and stretch assignments. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Develop engineers through targeted goals, feedback loops, and stretch assignments. "
   }
 ]
 

@@ -58,7 +58,7 @@ function getRowIcon(rowKey: string): React.ReactNode {
       return createIcon(
         React.createElement(React.Fragment, null,
           React.createElement('circle', { cx: 12, cy: 12, r: 7.5 }),
-          React.createElement('path', { d: 'M12 8v8M9.2 10.1c.8-1 2.9-1.6 4.5-.8 1.6.8 1.2 2.6-.6 3.1-1.7.5-3 .9-3 2.2 0 1.2 1.5 2.2 3.4 2.2 1.2 0 2.2-.3 3-.9' }),
+          React.createElement('path', { d: 'M12 7.7v8.6M14.7 9.8c-.5-.8-1.5-1.3-2.7-1.3-1.6 0-2.8.8-2.8 2 0 1.2 1 1.8 2.8 2.3 1.8.5 2.8 1.1 2.8 2.3s-1.2 2.1-2.9 2.1c-1.2 0-2.4-.5-3-1.4' }),
         ),
       )
     case 'health':

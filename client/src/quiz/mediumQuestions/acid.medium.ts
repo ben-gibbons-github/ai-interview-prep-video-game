@@ -11,7 +11,7 @@ const data = [
       "Retry safely by making transaction effects idempotent"
     ],
     "correctIndex": 1,
-    "correctExplanation": "This is correct because commit only after every step succeeds as one unit. For medium difficulty, this option most directly addresses atomicity without relying on weaker side optimizations."
+    "correctExplanation": "This is correct because commit only after every step succeeds as one unit. "
   },
   {
     "id": "medium-acid-consistency-2",

@@ -27,6 +27,9 @@ export interface QuizFreezeUiState {
   quizFreezeActive: boolean
   quizFreezeFading: boolean
   quizFreezeSecondsLeft: number
+  quizGraceQuestionModeActive: boolean
+  quizGraceQuestionsAnswered: number
+  quizGraceQuestionsRequired: number
 }
 
 export interface QuizPanelProps {
@@ -34,6 +37,7 @@ export interface QuizPanelProps {
   postOverlay: (payload: OverlayPayload) => string
   syncPlayerState: (player: Player) => void
   runLaunchConfig?: RunLaunchConfig
+  currentRound?: number
   isGamePaused?: boolean
   onRequestUnpauseGame?: () => void
   onQuizStreakChange: (streak: number) => void

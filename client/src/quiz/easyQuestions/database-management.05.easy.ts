@@ -10,7 +10,7 @@ const data = [
       "Skip backup drills because snapshots always restore exactly as expected."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Choose isolation level based on anomaly tolerance and critical invariants. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Choose isolation level based on anomaly tolerance and critical invariants. "
   },
   {
     "id": "easy-database-management-05-q2",
@@ -23,7 +23,7 @@ const data = [
       "Test recovery runbooks regularly with realistic restore-time targets."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Test recovery runbooks regularly with realistic restore-time targets. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Test recovery runbooks regularly with realistic restore-time targets. "
   }
 ]
 

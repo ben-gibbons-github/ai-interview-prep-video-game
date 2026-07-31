@@ -10,7 +10,7 @@ const data = [
       "Measure complexity against input dimensions instead of line-by-line syntax."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Measure complexity against input dimensions instead of line-by-line syntax. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Measure complexity against input dimensions instead of line-by-line syntax. "
   },
   {
     "id": "easy-algorithmic-complexity-a-06-q2",
@@ -23,7 +23,7 @@ const data = [
       "Choose algorithms from microbenchmarks that use tiny fixed datasets."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Prefer lower asymptotic growth when scale dominates fixed startup costs. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prefer lower asymptotic growth when scale dominates fixed startup costs. "
   }
 ]
 

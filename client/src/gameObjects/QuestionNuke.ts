@@ -7,10 +7,12 @@ export interface QuestionNukeOptions {
   source: Actor
   target: Actor
   damageAmount?: number
+  splashDamageRatio?: number
   speed?: number
   spawnPosition?: THREE.Vector3Tuple
   initialDistanceTravelled?: number
   spawnEffect?: (effect: GameObject) => void
+  getSplashTargets?: () => Actor[]
   onKillTarget?: (target: Actor) => void
 }
 
@@ -62,9 +64,11 @@ function createQuestionNukeTexture() {
 export class QuestionNuke extends GameObject {
   private readonly target: Actor
   private readonly damageAmount: number
+  private readonly splashDamageRatio: number
   private readonly speed: number
   private readonly impactRadius = 0.55
   private readonly spawnEffect: ((effect: GameObject) => void) | null
+  private readonly getSplashTargets: (() => Actor[]) | null
   private readonly onKillTarget: ((target: Actor) => void) | null
   private readonly projectile: THREE.Sprite
   private readonly direction = new THREE.Vector3()
@@ -80,8 +84,10 @@ export class QuestionNuke extends GameObject {
 
     this.target = options.target
     this.damageAmount = Math.max(1, options.damageAmount ?? 2000)
+    this.splashDamageRatio = Math.max(0, options.splashDamageRatio ?? 0.1)
     this.speed = Math.max(2, options.speed ?? 6.8)
     this.spawnEffect = options.spawnEffect ?? null
+    this.getSplashTargets = options.getSplashTargets ?? null
     this.onKillTarget = options.onKillTarget ?? null
 
     this.projectile = this.addSprite(createQuestionNukeTexture(), {
@@ -171,6 +177,18 @@ export class QuestionNuke extends GameObject {
     this.target.damage(this.damageAmount, () => {
       this.onKillTarget?.(this.target)
     })
+
+    const splashDamage = Math.max(1, this.damageAmount * this.splashDamageRatio)
+    const splashTargets = this.getSplashTargets?.() ?? []
+    for (const splashTarget of splashTargets) {
+      if (splashTarget === this.target || !splashTarget.isAlive()) {
+        continue
+      }
+
+      splashTarget.damage(splashDamage, () => {
+        this.onKillTarget?.(splashTarget)
+      })
+    }
 
     if (this.spawnEffect) {
       const impactOrigin: THREE.Vector3Tuple = [

@@ -10,7 +10,7 @@ const data = [
       "Treat O(N) and O(log N) as equivalent because both eventually increase."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Prefer lower asymptotic growth when scale dominates fixed startup costs. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prefer lower asymptotic growth when scale dominates fixed startup costs. "
   },
   {
     "id": "easy-algorithmic-complexity-a-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Assume one nested loop always means O(N^2) regardless of bounds."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Estimate upper bounds from dominant operations and ignore lower-order terms for large N. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Estimate upper bounds from dominant operations and ignore lower-order terms for large N. "
   }
 ]
 

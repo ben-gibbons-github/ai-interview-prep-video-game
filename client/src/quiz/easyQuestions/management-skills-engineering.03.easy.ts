@@ -10,7 +10,7 @@ const data = [
       "Prioritize by loudest stakeholder to keep planning cycles short."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Communicate risks early with options, tradeoffs, and mitigation timelines. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Communicate risks early with options, tradeoffs, and mitigation timelines. "
   },
   {
     "id": "easy-management-skills-engineering-03-q2",
@@ -23,7 +23,7 @@ const data = [
       "Delegate tasks without clarifying decision authority to encourage autonomy."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Prioritize work by customer impact, risk reduction, and team capacity realism. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Prioritize work by customer impact, risk reduction, and team capacity realism. "
   }
 ]
 

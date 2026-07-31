@@ -2,9 +2,9 @@ import { useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 import type { PlayerStateSnapshot } from '../Player/PlayerState'
 import { getArtifactNameAndDescriptionById } from '../Player/Player'
 import {
-  getChaosArtifactById,
   type RunLaunchConfig,
 } from './RunLaunchConfig'
+import { getActiveRunArtifactIds } from './RunArtifactPipeline'
 
 interface ArtifactMeta {
   id: string
@@ -442,29 +442,6 @@ function getArtifactMetaWithFallback(artifactId: string): ArtifactMeta | null {
   }
 }
 
-function getEnabledStartingArtifactIds(runLaunchConfig: RunLaunchConfig): string[] {
-  const startingArtifactIds: string[] = []
-
-  if (runLaunchConfig.startingArtifacts.hardQuestions) {
-    startingArtifactIds.push('start-artifact-hard-questions')
-  }
-
-  if (runLaunchConfig.startingArtifacts.starStoriesHardMode) {
-    startingArtifactIds.push('start-artifact-star-stories-hard')
-  }
-
-  return startingArtifactIds
-}
-
-function getActiveChaosArtifactId(runLaunchConfig: RunLaunchConfig): string | null {
-  const chaosArtifact = getChaosArtifactById(runLaunchConfig.chaosArtifactId)
-  if (!chaosArtifact) {
-    return null
-  }
-
-  return `chaos-artifact-${chaosArtifact.id}`
-}
-
 function hashArtifactId(artifactId: string): number {
   let hash = 0
   for (let index = 0; index < artifactId.length; index += 1) {
@@ -804,10 +781,8 @@ export function ArtifactSvgIcon({ artifactId }: { artifactId: string }) {
 export function ArtifactIconBar({ playerState, runLaunchConfig }: ArtifactIconBarProps) {
   const [hoveredArtifactId, setHoveredArtifactId] = useState<string | null>(null)
   const purchasedArtifacts = useMemo(() => {
-    const activeChaosArtifactId = getActiveChaosArtifactId(runLaunchConfig)
     const combinedArtifactIds = [
-      ...getEnabledStartingArtifactIds(runLaunchConfig),
-      ...(activeChaosArtifactId ? [activeChaosArtifactId] : []),
+      ...getActiveRunArtifactIds(runLaunchConfig),
       ...playerState.artifactIds,
     ]
 

@@ -10,7 +10,7 @@ const data = [
       "Delay rollback decisions until every subsystem has complete diagnostics."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Patch in staged rings with rollback plans and verification gates. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Patch in staged rings with rollback plans and verification gates. "
   },
   {
     "id": "easy-sysadmin-01-q2",
@@ -23,7 +23,7 @@ const data = [
       "Alert on user-facing SLO signals first, then supporting host metrics."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Alert on user-facing SLO signals first, then supporting host metrics. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Alert on user-facing SLO signals first, then supporting host metrics. "
   }
 ]
 

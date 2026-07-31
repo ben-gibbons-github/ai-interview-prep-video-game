@@ -10,7 +10,7 @@ const data = [
       "Define state transitions and overlapping subproblems before coding DP."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Define state transitions and overlapping subproblems before coding DP. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Define state transitions and overlapping subproblems before coding DP. "
   },
   {
     "id": "easy-algorithms-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Use the asymptotically fastest method even when constants dominate your workload."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Choose structures that optimize the dominant operation under expected loads. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Choose structures that optimize the dominant operation under expected loads. "
   }
 ]
 

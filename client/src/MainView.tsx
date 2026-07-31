@@ -63,7 +63,6 @@ import { buildStarStoryQuestionBank, parseStarStory, type SavedStarStory } from 
 import {
   buildDefaultLaunchConfig,
   computeEnemyDifficultyMultiplier,
-  computeQuestionGoldMultiplier,
   DEFAULT_RUN_LAUNCH_CONFIG,
   loadRunLaunchProgress,
   MAX_RUN_DIFFICULTY,
@@ -74,6 +73,9 @@ import {
   type RunDifficultyLevel,
   type RunLaunchProgress,
 } from './ui/RunLaunchConfig'
+import {
+  buildArtifactBonusSnapshot,
+} from './Player/ArtifactBonusPipeline'
 
 const GLOBAL_INCOMING_DAMAGE_MULTIPLIER = 0.7
 const STAR_STORY_RUNTIME_BANK_KEY = 'star-stories'
@@ -248,6 +250,32 @@ function createCounterToneStyle(hue: number, saturation = 88): CSSProperties {
   } as CSSProperties
 }
 
+function shouldAutoBypassRunLaunchSetup(progress: RunLaunchProgress): boolean {
+  const hasOnlyOneDifficultyChoice = Math.max(0, Math.floor(progress.maxUnlockedDifficulty)) <= 0
+  const hasStartingArtifactsUnlocked = Math.max(0, Math.floor(progress.completedRunsCount ?? 0)) >= 1
+  const hasChaosArtifactsUnlocked = Math.max(0, Math.floor(progress.lastRunReachedRound)) >= 5
+  return hasOnlyOneDifficultyChoice && !hasStartingArtifactsUnlocked && !hasChaosArtifactsUnlocked
+}
+
+function hasSavedRunInProgressForFocusDialog(saveState: ReturnType<typeof loadGameState>): boolean {
+  if (!saveState) {
+    return false
+  }
+
+  const currentRound = Math.max(1, Math.floor(saveState.currentRound ?? 1))
+  const runElapsedSeconds = Math.max(0, Math.floor(saveState.runElapsedSeconds ?? 0))
+  const roundsCleared = Math.max(0, Math.floor(saveState.roundsCleared ?? 0))
+  return currentRound > 1 || runElapsedSeconds > 0 || roundsCleared > 0
+}
+
+function shouldShowWelcomeDialog(saveState: ReturnType<typeof loadGameState>, progress: RunLaunchProgress): boolean {
+  if (saveState) {
+    return false
+  }
+
+  return Math.max(0, Math.floor(progress.startedRunsCount ?? 0)) <= 0
+}
+
 const DEFAULT_QUIZ_WORLD_CONTROLS: QuizWorldControls = {
   getIsQuizPaused: () => false,
   tickFreeze: () => {},
@@ -279,6 +307,9 @@ const INITIAL_QUIZ_FREEZE_UI_STATE: QuizFreezeUiState = {
   quizFreezeActive: false,
   quizFreezeFading: false,
   quizFreezeSecondsLeft: 0,
+  quizGraceQuestionModeActive: false,
+  quizGraceQuestionsAnswered: 0,
+  quizGraceQuestionsRequired: 5,
 }
 
 interface PostGameSummary {
@@ -362,7 +393,12 @@ export function MainView() {
   const [lifeLossDialogLives, setLifeLossDialogLives] = useState<number | null>(null)
   const [worldSessionId, setWorldSessionId] = useState(0)
   const [starStories, setStarStories] = useState<SavedStarStory[]>(initialStarStories)
-  const [focusDialogOpen, setFocusDialogOpen] = useState(true)
+  const [focusDialogOpen, setFocusDialogOpen] = useState(
+    () => hasSavedRunInProgressForFocusDialog(loadedSaveRef.current),
+  )
+  const [welcomeDialogOpen, setWelcomeDialogOpen] = useState(
+    () => shouldShowWelcomeDialog(loadedSaveRef.current, loadRunLaunchProgress()),
+  )
   const [focusDialogOpenedFromMenu, setFocusDialogOpenedFromMenu] = useState(false)
   const [starVoiceProgressDialogOpen, setStarVoiceProgressDialogOpen] = useState(false)
   const [lifetimeSeenQuestionIds, setLifetimeSeenQuestionIds] = useState<string[]>(
@@ -382,6 +418,7 @@ export function MainView() {
   const [fieldGlowBoostKey, setFieldGlowBoostKey] = useState(0)
   const [highScoreEntries, setHighScoreEntries] = useState<HighScoreEntry[]>(() => loadHighScoreBoard())
   const [dailyActivityStats, setDailyActivityStats] = useState<DailyActivityStats>(() => loadDailyActivityStats())
+  const initialLaunchFlowAppliedRef = useRef(false)
   const { overlays, postOverlay, dismissOverlay, clearOverlays } = useOverlaySystem()
   const todayActivityStats = useMemo(() => getTodayStats(dailyActivityStats), [dailyActivityStats])
   const dailyRankProgress = useMemo(() => getRankProgress(todayActivityStats.questionsAnswered), [todayActivityStats.questionsAnswered])
@@ -486,10 +523,10 @@ export function MainView() {
   }, [fieldGlowBoostKey])
 
   useEffect(() => {
-    if (focusDialogOpen) {
+    if (focusDialogOpen || welcomeDialogOpen) {
       setIsGamePaused(true)
     }
-  }, [focusDialogOpen])
+  }, [focusDialogOpen, welcomeDialogOpen])
 
   const triggerFieldGlowBoost = useCallback(() => {
     setFieldGlowBoostKey((previous) => previous + 1)
@@ -635,97 +672,14 @@ export function MainView() {
     } as CSSProperties
   }, [dailyRankProgress.rankNumber, dailyRankProgress.tier.accent, dailyRankProgress.tier.glow])
 
-  const runLaunchQuestionGoldMultiplier = useMemo(() => {
-    return computeQuestionGoldMultiplier(runLaunchConfig)
-  }, [runLaunchConfig])
-
-  const runWideGoldMultiplier = useMemo(() => {
-    if (runLaunchConfig.chaosArtifactId === 'gold-125-shield-drain') {
-      return 1.25
-    }
-
-    if (runLaunchConfig.chaosArtifactId === 'gold-200-health-drain') {
-      return 1.5
-    }
-
-    return 1
-  }, [runLaunchConfig.chaosArtifactId])
-
-  const runLaunchGoldContributors = useMemo(() => {
-    const contributors: PlayerStateSnapshot['goldMultiplierContributors'] = []
-
-    if (runLaunchConfig.startingArtifacts.hardQuestions) {
-      contributors.push({
-        artifactId: 'start-artifact-hard-questions',
-        artifactName: 'Hard Questions (Starting Artifact)',
-        kind: 'question',
-        questionMultiplier: 1.25,
-        enemyKillMultiplier: 1,
-        stacks: 1,
-      })
-    }
-
-    if (runLaunchConfig.chaosArtifactId === 'gold-125-shield-drain') {
-      contributors.push({
-        artifactId: 'chaos-artifact-gold-125-shield-drain',
-        artifactName: 'Leaky Fortune Capacitor (Chaos Artifact)',
-        kind: 'both',
-        questionMultiplier: 1.25,
-        enemyKillMultiplier: 1.25,
-        stacks: 1,
-      })
-    }
-
-    if (runLaunchConfig.chaosArtifactId === 'gold-200-health-drain') {
-      contributors.push({
-        artifactId: 'chaos-artifact-gold-200-health-drain',
-        artifactName: 'Blood Mint Engine (Chaos Artifact)',
-        kind: 'both',
-        questionMultiplier: 1.5,
-        enemyKillMultiplier: 1.5,
-        stacks: 1,
-      })
-    }
-
-    if (runLaunchConfig.chaosArtifactId === 'fast-rounds') {
-      contributors.push({
-        artifactId: 'chaos-artifact-fast-rounds',
-        artifactName: 'Fast Rounds (Chaos Artifact)',
-        kind: 'question',
-        questionMultiplier: 2.2,
-        enemyKillMultiplier: 1,
-        stacks: 1,
-      })
-    }
-
-    if (runLaunchConfig.startingArtifacts.starStoriesHardMode) {
-      contributors.push({
-        artifactId: 'start-artifact-star-stories-hard',
-        artifactName: 'I Know My STAR Stories (Starting Artifact)',
-        kind: 'question',
-        questionMultiplier: 1.5,
-        enemyKillMultiplier: 1,
-        stacks: 1,
-        appliesTo: 'STAR stories only',
-      })
-    }
-
-    return contributors
-  }, [
-    runLaunchConfig.chaosArtifactId,
-    runLaunchConfig.startingArtifacts.hardQuestions,
-    runLaunchConfig.startingArtifacts.starStoriesHardMode,
-  ])
-
   const syncPlayerState = useCallback((player: Player) => {
-    const artifactQuestionMultiplier = player.getGlobalGoldMultiplierForQuestionAnswer()
-    const artifactContributors = player.getGoldMultiplierContributors()
+    const bonusSnapshot = buildArtifactBonusSnapshot(player, runLaunchConfig)
     const nextPlayerState = {
       ...player.getStateSnapshot(),
       quizCurrentStreak: quizCurrentStreakRef.current,
-      questionAnswerGoldMultiplier: artifactQuestionMultiplier * runLaunchQuestionGoldMultiplier * runWideGoldMultiplier,
-      enemyKillGoldMultiplier: player.getGlobalGoldMultiplierForEnemyKill() * runWideGoldMultiplier,
-      goldMultiplierContributors: [...artifactContributors, ...runLaunchGoldContributors],
+      questionAnswerGoldMultiplier: bonusSnapshot.gold.totalQuestionMultiplier,
+      enemyKillGoldMultiplier: bonusSnapshot.gold.totalEnemyKillMultiplier,
+      goldMultiplierContributors: bonusSnapshot.gold.contributors,
     }
     const signature = getPlayerStateSignature(nextPlayerState)
 
@@ -735,7 +689,7 @@ export function MainView() {
 
     playerStateSignatureRef.current = signature
     setPlayerState(nextPlayerState)
-  }, [runLaunchGoldContributors, runLaunchQuestionGoldMultiplier, runWideGoldMultiplier])
+  }, [runLaunchConfig])
 
   const handleRewardPromptChange = useCallback((nextRewardPrompt: RewardPrompt | null) => {
     rewardPromptSaveRef.current = nextRewardPrompt
@@ -1011,12 +965,11 @@ export function MainView() {
     setRunElapsedSeconds(0)
     runElapsedSecondsRef.current = 0
     setRunReady(false)
-    setRunSetupOpen(true)
-    setStarStoriesSetupOpen(false)
-    setPendingRunLaunchConfig(null)
     setPostGameSummary(null)
     setIsGamePaused(false)
     setQuizTrackingReady(true)
+    let nextProgressForSetup = runLaunchProgress
+    let nextRunLaunchConfigForSetup = buildDefaultLaunchConfig(runLaunchProgress.maxUnlockedDifficulty)
     const shouldDisableChaosForNextRun = runReady && !isRunEnded && currentRound < 5
     if (shouldDisableChaosForNextRun) {
       const nextProgress: RunLaunchProgress = {
@@ -1024,12 +977,24 @@ export function MainView() {
         lastRunReachedRound: 0,
         pendingChaosArtifactId: null,
       }
+      nextProgressForSetup = nextProgress
+      nextRunLaunchConfigForSetup = buildDefaultLaunchConfig(nextProgress.maxUnlockedDifficulty)
       setRunLaunchProgress(nextProgress)
       saveRunLaunchProgress(nextProgress)
-      setRunLaunchConfig(buildDefaultLaunchConfig(nextProgress.maxUnlockedDifficulty))
-    } else {
-      setRunLaunchConfig(buildDefaultLaunchConfig(runLaunchProgress.maxUnlockedDifficulty))
     }
+
+    setRunLaunchConfig(nextRunLaunchConfigForSetup)
+
+    if (shouldAutoBypassRunLaunchSetup(nextProgressForSetup)) {
+      setRunSetupOpen(false)
+      setPendingRunLaunchConfig(nextRunLaunchConfigForSetup)
+      setStarStoriesSetupOpen(true)
+    } else {
+      setRunSetupOpen(true)
+      setStarStoriesSetupOpen(false)
+      setPendingRunLaunchConfig(null)
+    }
+
     clearOverlays()
     setWorldSessionId((previous) => previous + 1)
 
@@ -1067,14 +1032,12 @@ export function MainView() {
     setPostGameSummary(null)
     setIsGamePaused(false)
     setQuizTrackingReady(true)
+    setWelcomeDialogOpen(false)
     setRunLaunchProgress((previous) => {
-      if (previous.pendingChaosArtifactId === null) {
-        return previous
-      }
-
       const nextProgress: RunLaunchProgress = {
         ...previous,
         pendingChaosArtifactId: null,
+        startedRunsCount: Math.max(0, Math.floor(previous.startedRunsCount ?? 0)) + 1,
       }
       saveRunLaunchProgress(nextProgress)
       return nextProgress
@@ -1155,12 +1118,57 @@ export function MainView() {
       return
     }
 
+    if (shouldAutoBypassRunLaunchSetup(runLaunchProgress)) {
+      const autoRunLaunchConfig = buildDefaultLaunchConfig(runLaunchProgress.maxUnlockedDifficulty)
+      setRunLaunchConfig(autoRunLaunchConfig)
+      setRunSetupOpen(false)
+      setPendingRunLaunchConfig(autoRunLaunchConfig)
+      setStarStoriesSetupOpen(true)
+      setRunReady(false)
+      setQuizTrackingReady(true)
+      return
+    }
+
     setStarStoriesSetupOpen(false)
     setPendingRunLaunchConfig(null)
     setRunSetupOpen(true)
     setRunReady(false)
     setQuizTrackingReady(true)
-  }, [focusDialogOpenedFromMenu])
+  }, [focusDialogOpenedFromMenu, runLaunchProgress])
+
+  useEffect(() => {
+    if (initialLaunchFlowAppliedRef.current || focusDialogOpen || welcomeDialogOpen) {
+      return
+    }
+
+    initialLaunchFlowAppliedRef.current = true
+
+    if (loadedSaveRef.current) {
+      setRunSetupOpen(false)
+      setStarStoriesSetupOpen(false)
+      setPendingRunLaunchConfig(null)
+      setRunReady(true)
+      setQuizTrackingReady(true)
+      return
+    }
+
+    if (shouldAutoBypassRunLaunchSetup(runLaunchProgress)) {
+      const autoRunLaunchConfig = buildDefaultLaunchConfig(runLaunchProgress.maxUnlockedDifficulty)
+      setRunLaunchConfig(autoRunLaunchConfig)
+      setRunSetupOpen(false)
+      setPendingRunLaunchConfig(autoRunLaunchConfig)
+      setStarStoriesSetupOpen(true)
+      setRunReady(false)
+      setQuizTrackingReady(true)
+      return
+    }
+
+    setStarStoriesSetupOpen(false)
+    setPendingRunLaunchConfig(null)
+    setRunSetupOpen(true)
+    setRunReady(false)
+    setQuizTrackingReady(true)
+  }, [focusDialogOpen, runLaunchProgress, welcomeDialogOpen])
 
   const persistGameState = useCallback(() => {
     if (!runReady || isRunEnded) {
@@ -1610,8 +1618,14 @@ export function MainView() {
             className={`freeze-overlay${quizFreezeUiState.quizFreezeFading ? ' fade-out' : ''}`}
             aria-hidden="true"
           >
-            <div className="freeze-overlay-label">Time Frozen</div>
-            <div className="freeze-overlay-timer">{quizFreezeUiState.quizFreezeSecondsLeft.toFixed(0)}s</div>
+            <div className="freeze-overlay-label">
+              {quizFreezeUiState.quizGraceQuestionModeActive ? 'Answer Questions' : 'Time Frozen'}
+            </div>
+            <div className="freeze-overlay-timer">
+              {quizFreezeUiState.quizGraceQuestionModeActive
+                ? `${quizFreezeUiState.quizGraceQuestionsAnswered} / ${quizFreezeUiState.quizGraceQuestionsRequired}`
+                : `${quizFreezeUiState.quizFreezeSecondsLeft.toFixed(0)}s`}
+            </div>
           </div>
         ) : null}
       </section>
@@ -1653,6 +1667,7 @@ export function MainView() {
             postOverlay={postOverlay}
             syncPlayerState={syncPlayerState}
             runLaunchConfig={runLaunchConfig}
+            currentRound={currentRound}
             isGamePaused={isGamePaused}
             onRequestUnpauseGame={() => {
               setIsGamePaused(false)
@@ -1717,7 +1732,7 @@ export function MainView() {
         <div className="quiz-modal-backdrop" role="dialog" aria-modal="true" aria-label="Life lost warning">
           <div className="quiz-modal-card quiz-modal-card-incorrect">
             <h3>Life Lost</h3>
-            <p>You lost a life. Enemies are frozen for 15 seconds.</p>
+            <p>You lost a life.</p>
             <p>Lives remaining: {lifeLossDialogLives}</p>
             <button
               type="button"
@@ -1820,6 +1835,39 @@ export function MainView() {
             handleStartRun(nextStories, pendingRunLaunchConfig ?? runLaunchConfig)
           }}
         />
+      ) : null}
+
+      {welcomeDialogOpen ? (
+        <div className="quiz-modal-backdrop" role="dialog" aria-modal="true" aria-label="Welcome to the game">
+          <div className="quiz-modal-card welcome-dialog-card">
+            <h3>Welcome</h3>
+            <p className="quiz-modal-copy welcome-dialog-lead">
+              This is a fast interview-practice game: answer questions to grow stronger while surviving combat.
+            </p>
+            <ul className="welcome-dialog-list">
+              <li>Questions appear during runs and power up your ship when you answer well.</li>
+              <li>Questions get harder the more you answer correctly.</li>
+              <li>Correct answers can grant gold, healing, buffs, and artifact-triggered effects.</li>
+              <li>Between rounds, you buy artifacts that power up your ship.</li>
+              <li>Survive to round 10 and beat the boss to unlock the next difficulty level.</li>
+            </ul>
+            <p className="quiz-modal-copy quiz-modal-copy-subtle">
+              Start a run, answer a few questions, and the systems will make sense very quickly.
+            </p>
+            <div className="post-game-actions">
+              <button
+                type="button"
+                className="quiz-next"
+                onClick={() => {
+                  setWelcomeDialogOpen(false)
+                  setIsGamePaused(false)
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
       ) : null}
 
       {focusDialogOpen ? (

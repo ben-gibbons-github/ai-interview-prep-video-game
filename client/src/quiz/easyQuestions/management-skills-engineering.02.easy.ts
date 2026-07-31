@@ -10,7 +10,7 @@ const data = [
       "Develop engineers through targeted goals, feedback loops, and stretch assignments."
     ],
     "correctIndex": 3,
-    "correctExplanation": "Develop engineers through targeted goals, feedback loops, and stretch assignments. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Develop engineers through targeted goals, feedback loops, and stretch assignments. "
   },
   {
     "id": "easy-management-skills-engineering-02-q2",
@@ -23,7 +23,7 @@ const data = [
       "Prioritize by loudest stakeholder to keep planning cycles short."
     ],
     "correctIndex": 0,
-    "correctExplanation": "Communicate risks early with options, tradeoffs, and mitigation timelines. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Communicate risks early with options, tradeoffs, and mitigation timelines. "
   }
 ]
 

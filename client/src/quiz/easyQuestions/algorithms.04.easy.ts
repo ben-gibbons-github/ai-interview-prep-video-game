@@ -10,7 +10,7 @@ const data = [
       "Prefer greedy solutions because they are always easier to prove correct."
     ],
     "correctIndex": 1,
-    "correctExplanation": "Match algorithm choice to input constraints, access patterns, and correctness guarantees. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Match algorithm choice to input constraints, access patterns, and correctness guarantees. "
   },
   {
     "id": "easy-algorithms-04-q2",
@@ -23,7 +23,7 @@ const data = [
       "Implement DP by memoizing everything, even unrelated states."
     ],
     "correctIndex": 2,
-    "correctExplanation": "Validate greedy choice property before relying on local-optimum decisions. For easy difficulty, choose the option that most directly solves the immediate problem with minimal unnecessary complexity."
+    "correctExplanation": "Validate greedy choice property before relying on local-optimum decisions. "
   }
 ]
 
