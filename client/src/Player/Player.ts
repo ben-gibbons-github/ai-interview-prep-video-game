@@ -706,7 +706,7 @@ export class Player extends Actor {
     this.formationPosition.x = x
     this.formationPosition.y = y
     this.formationPosition.z = z
-    this.group.position.set(x, y, z)
+    this.setActualPosition(x, y, z)
   }
 
   applyArtifact(artifact: Artifact) {

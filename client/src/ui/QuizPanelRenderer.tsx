@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { getActiveQuizFocusFilters, getLatestQuizQuestionContent, type RawCodingLanguageId } from '../quiz/QuizQuestionManager'
-import { useQuizManager } from './QuizManager'
+import {
+  getActiveQuizFocusFilters,
+  getLatestQuizQuestionContent,
+  type CadenceSpecialQuestionType,
+  type RawCodingLanguageId,
+} from '../quiz/QuizQuestionManager'
+import { getAcceptedOrderItemsOrdersForQuestion, useQuizManager } from './QuizManager'
 import { CODE_BLANK_MARKER, type QuizPanel as QuizPanelBase, type QuizPanelProps } from './QuizPanel'
 import { executeRawCodingQuestion, type RawCodingExecutionResult } from '../codeRunning/.rawCodingRunner'
 import { QuizPanelQuestionOrder } from './QuizPanelQuestionOrder'
@@ -21,7 +26,8 @@ import {
   resetCodeEditorHistoryState,
 } from './CodeEditorBehavior'
 
-const ANSWER_QUESTION_AUTO = true
+const DEBUG_AUTO_ANSWER_ENABLED = import.meta.env.VITE_DEBUG_AUTO_ANSWER_ENABLED !== 'false'
+const DEBUG_QUEUE_POPOVER_ENABLED = import.meta.env.VITE_DEBUG_QUEUE_POPOVER_ENABLED !== 'false'
 
 type RichTextBlock =
   | {
@@ -237,6 +243,7 @@ export function QuizPanelRenderer({
     quizCorrectNeededForNextLife,
     quizUpcomingBuffLabel,
     priorityQuestionIds,
+    quizSelectionDebugSnapshot,
     handleQuizAnswer,
     handleValidListAnswer,
     handleOrderItemsAnswer,
@@ -251,6 +258,7 @@ export function QuizPanelRenderer({
     tickFreeze,
     handleCombatQuizVisibility,
     grantRoundStartFreeze,
+    queueLifeLossReorderQuestion,
     getSaveState,
     restoreSaveState,
     resetQuizState,
@@ -270,6 +278,8 @@ export function QuizPanelRenderer({
   const [rawCodingRunsUsed, setRawCodingRunsUsed] = useState(0)
   const [rawEditorBraceHighlightIndex, setRawEditorBraceHighlightIndex] = useState<number | null>(null)
   const [rawEditorScroll, setRawEditorScroll] = useState({ top: 0, left: 0 })
+  const [showQueueDebugPopover, setShowQueueDebugPopover] = useState(false)
+  const [queueDebugPopoverPinned, setQueueDebugPopoverPinned] = useState(false)
   const [selectedValidListIndices, setSelectedValidListIndices] = useState<number[]>([])
   const [orderItemsDraft, setOrderItemsDraft] = useState<{
     questionId: string
@@ -593,6 +603,7 @@ export function QuizPanelRenderer({
       tickFreeze,
       handleCombatQuizVisibility,
       grantRoundStartFreeze,
+      queueLifeLossReorderQuestion,
       getSaveState: getSaveStateWithProgress,
       restoreSaveState: restoreSaveStateWithProgress,
       resetQuizState,
@@ -603,6 +614,7 @@ export function QuizPanelRenderer({
     getSaveStateWithProgress,
     handleCombatQuizVisibility,
     onRegisterWorldControls,
+    queueLifeLossReorderQuestion,
     resetQuizState,
     restoreSaveStateWithProgress,
     tickFreeze,
@@ -797,7 +809,7 @@ export function QuizPanelRenderer({
   }
 
   const handleAutoAnswerQuestion = async () => {
-    if (!ANSWER_QUESTION_AUTO || !quizQuestion || quizAnswerResult !== null) {
+    if (!DEBUG_AUTO_ANSWER_ENABLED || !quizQuestion || quizAnswerResult !== null) {
       return
     }
 
@@ -1048,6 +1060,112 @@ export function QuizPanelRenderer({
     })
   }, [quizQuestion?.id])
 
+  const queueDebugPopoverData = useMemo(() => {
+    const formatCycleProgress = (countdown: number, cycleLength: number): string => {
+      const currentCount = countdown === 0 ? cycleLength : cycleLength - countdown
+      return `${currentCount}/${cycleLength}`
+    }
+
+    const MAX_PREVIEW_ITEMS = 16
+    const priorityPreview = priorityQuestionIds
+      .slice(0, MAX_PREVIEW_ITEMS)
+      .map((questionId, index) => `${index + 1}. ${questionId}`)
+    const remainingPriorityCount = Math.max(0, priorityQuestionIds.length - MAX_PREVIEW_ITEMS)
+
+    const deferredCadenceQueuePreview = quizSelectionDebugSnapshot.cadenceDeferredQueue.slice(0, MAX_PREVIEW_ITEMS)
+    const remainingDeferredCadenceCount = Math.max(
+      0,
+      quizSelectionDebugSnapshot.cadenceDeferredQueue.length - MAX_PREVIEW_ITEMS,
+    )
+
+    const cadenceProgressRows: Array<{
+      type: CadenceSpecialQuestionType
+      progress: string
+      available: boolean
+      unavailableReason: string | null
+    }> = [
+      {
+        type: 'starStoryTitle',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.starStoryTitle, 7),
+        available: quizSelectionDebugSnapshot.cadenceAvailability.starStoryTitle,
+        unavailableReason: quizSelectionDebugSnapshot.cadenceAvailabilityReasons.starStoryTitle,
+      },
+      {
+        type: 'starStorySectionOrdering',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.starStorySectionOrdering, 11),
+        available: quizSelectionDebugSnapshot.cadenceAvailability.starStorySectionOrdering,
+        unavailableReason: quizSelectionDebugSnapshot.cadenceAvailabilityReasons.starStorySectionOrdering,
+      },
+      {
+        type: 'starStoryMatching',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.starStoryMatching, 5),
+        available: quizSelectionDebugSnapshot.cadenceAvailability.starStoryMatching,
+        unavailableReason: quizSelectionDebugSnapshot.cadenceAvailabilityReasons.starStoryMatching,
+      },
+      {
+        type: 'systemDesign',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.systemDesign, 9),
+        available: quizSelectionDebugSnapshot.cadenceAvailability.systemDesign,
+        unavailableReason: quizSelectionDebugSnapshot.cadenceAvailabilityReasons.systemDesign,
+      },
+      {
+        type: 'multiSectionSystemDesign',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.multiSectionSystemDesign, 10),
+        available: quizSelectionDebugSnapshot.cadenceAvailability.multiSectionSystemDesign,
+        unavailableReason: quizSelectionDebugSnapshot.cadenceAvailabilityReasons.multiSectionSystemDesign,
+      },
+      {
+        type: 'rawCoding',
+        progress: formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.rawCodingEveryFifth, 6),
+        available: true,
+        unavailableReason: null,
+      },
+    ]
+
+    const summaryText = [
+      'Selection decision snapshot',
+      `- askedCount: ${quizSelectionDebugSnapshot.askedQuestionCount}`,
+      `- nextQuestionPosition: ${quizSelectionDebugSnapshot.questionPosition}`,
+      `- targetDifficulty: ${quizSelectionDebugSnapshot.targetDifficulty}`,
+      `- fallbackOrder: ${quizSelectionDebugSnapshot.fallbackOrder.join(' -> ')}`,
+      `- micOnlyMode: ${quizSelectionDebugSnapshot.micOnlyMode ? 'on' : 'off'}`,
+      `- rawCodingFrequencyMultiplier: x${quizSelectionDebugSnapshot.rawCodingFrequencyMultiplier.toFixed(2)}`,
+      '',
+      `Priority queue (${priorityQuestionIds.length})`,
+      ...(priorityPreview.length > 0 ? priorityPreview : ['(empty)']),
+      ...(remainingPriorityCount > 0 ? [`...and ${remainingPriorityCount} more priority item(s)`] : []),
+      '',
+      `Raw coding bonus collision cadence: ${formatCycleProgress(quizSelectionDebugSnapshot.cadenceCountdowns.rawCodingEveryTwentieth, 21)}`,
+    ].join('\n')
+
+    return {
+      summaryText,
+      cadenceDueNow: quizSelectionDebugSnapshot.cadenceDueNow,
+      deferredCadenceQueuePreview,
+      remainingDeferredCadenceCount,
+      cadenceProgressRows,
+    }
+  }, [priorityQuestionIds, quizSelectionDebugSnapshot])
+
+  const getCadenceTypeToneClass = (cadenceType: CadenceSpecialQuestionType): string => {
+    switch (cadenceType) {
+      case 'starStoryTitle':
+        return 'quiz-cadence-type-title'
+      case 'starStorySectionOrdering':
+        return 'quiz-cadence-type-ordering'
+      case 'starStoryMatching':
+        return 'quiz-cadence-type-matching'
+      case 'systemDesign':
+        return 'quiz-cadence-type-system-design'
+      case 'multiSectionSystemDesign':
+        return 'quiz-cadence-type-multi-section'
+      case 'rawCoding':
+        return 'quiz-cadence-type-raw-coding'
+      default:
+        return 'quiz-cadence-type-default'
+    }
+  }
+
   if (!quizActive) {
     return null
   }
@@ -1098,6 +1216,7 @@ export function QuizPanelRenderer({
 
   const activeQuizQuestion = displayedQuizQuestion ?? quizQuestion
   const modalRoot = typeof document !== 'undefined' ? document.body : null
+  const shouldShowQueueDebugPopover = showQueueDebugPopover || queueDebugPopoverPinned
 
   return (
     <section
@@ -1138,15 +1257,120 @@ export function QuizPanelRenderer({
             <br />
             {quizCorrectForNextLife}/{quizCorrectNeededForNextLife} to next life
           </span>
-          {ANSWER_QUESTION_AUTO ? (
-            <button
-              type="button"
-              className="star-story-inline-button"
-              onClick={handleAutoAnswerQuestion}
-              disabled={quizAnswerResult !== null}
-            >
-              Auto Answer
-            </button>
+          {DEBUG_AUTO_ANSWER_ENABLED || DEBUG_QUEUE_POPOVER_ENABLED ? (
+            <div className="quiz-debug-controls">
+              {DEBUG_AUTO_ANSWER_ENABLED ? (
+                <button
+                  type="button"
+                  className="star-story-inline-button"
+                  onClick={handleAutoAnswerQuestion}
+                  disabled={quizAnswerResult !== null}
+                >
+                  Auto Answer
+                </button>
+              ) : null}
+              {DEBUG_QUEUE_POPOVER_ENABLED ? (
+                <div
+                  className="quiz-debug-popover-anchor"
+                >
+                  <button
+                    type="button"
+                    className="star-story-inline-button"
+                    aria-label="Preview the upcoming question selection queue and cadence state"
+                    onMouseEnter={() => setShowQueueDebugPopover(true)}
+                    onMouseLeave={() => {
+                      if (!queueDebugPopoverPinned) {
+                        setShowQueueDebugPopover(false)
+                      }
+                    }}
+                    onClick={(event) => {
+                      event.preventDefault()
+                      setQueueDebugPopoverPinned((current) => {
+                        const nextPinnedState = !current
+                        setShowQueueDebugPopover(nextPinnedState)
+                        return nextPinnedState
+                      })
+                    }}
+                  >
+                    Queue ({priorityQuestionIds.length})
+                  </button>
+                  {shouldShowQueueDebugPopover ? (
+                    <div
+                      className="quiz-debug-popover"
+                      role="tooltip"
+                      aria-live="polite"
+                      onMouseEnter={() => setShowQueueDebugPopover(true)}
+                      onMouseLeave={() => {
+                        if (!queueDebugPopoverPinned) {
+                          setShowQueueDebugPopover(false)
+                        }
+                      }}
+                    >
+                    <pre className="quiz-debug-popover-text">{queueDebugPopoverData.summaryText}</pre>
+                    <div className="quiz-debug-cadence-section">
+                      <p className="quiz-debug-cadence-heading">Current cadence due now</p>
+                      <div className="quiz-debug-cadence-list">
+                        {queueDebugPopoverData.cadenceDueNow.length > 0 ? (
+                          queueDebugPopoverData.cadenceDueNow.map((cadenceType, index) => (
+                            <span
+                              key={`${cadenceType}-${index}`}
+                              className={`quiz-cadence-type-badge ${getCadenceTypeToneClass(cadenceType)}${index === 0 ? ' is-current' : ''}`}
+                            >
+                              {index === 0 ? `now: ${cadenceType}` : cadenceType}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="quiz-debug-cadence-empty">none</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="quiz-debug-cadence-section">
+                      <p className="quiz-debug-cadence-heading">
+                        Upcoming deferred cadence ({quizSelectionDebugSnapshot.cadenceDeferredQueue.length})
+                      </p>
+                      <div className="quiz-debug-cadence-list quiz-debug-cadence-list-deferred">
+                        {queueDebugPopoverData.deferredCadenceQueuePreview.length > 0 ? (
+                          queueDebugPopoverData.deferredCadenceQueuePreview.map((cadenceType, index) => (
+                            <span
+                              key={`${cadenceType}-${index}`}
+                              className={`quiz-cadence-type-badge ${getCadenceTypeToneClass(cadenceType)}`}
+                            >
+                              {index + 1}. {cadenceType}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="quiz-debug-cadence-empty">(empty)</span>
+                        )}
+                        {queueDebugPopoverData.remainingDeferredCadenceCount > 0 ? (
+                          <span className="quiz-debug-cadence-empty">
+                            ...and {queueDebugPopoverData.remainingDeferredCadenceCount} more deferred cadence item(s)
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div className="quiz-debug-cadence-section">
+                      <p className="quiz-debug-cadence-heading">Cadence progress (current event / cycle length)</p>
+                      <div className="quiz-debug-cadence-progress-list">
+                        {queueDebugPopoverData.cadenceProgressRows.map((row) => (
+                          <div key={row.type} className="quiz-debug-cadence-progress-row">
+                            <span className={`quiz-cadence-type-badge ${getCadenceTypeToneClass(row.type)}`}>{row.type}</span>
+                            <span className="quiz-debug-cadence-progress-value">{row.progress}</span>
+                            <span className={row.available ? 'quiz-debug-cadence-availability-yes' : 'quiz-debug-cadence-availability-no'}>
+                              {row.available
+                                ? 'available'
+                                : row.unavailableReason
+                                  ? `blocked: ${row.unavailableReason}`
+                                  : 'blocked'}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           ) : null}
         </header>
 
@@ -1326,6 +1550,7 @@ export function QuizPanelRenderer({
           <QuizPanelQuestionOrder
             questionId={quizQuestion.id}
             orderItems={quizQuestion.orderItems}
+            acceptedOrders={getAcceptedOrderItemsOrdersForQuestion(quizQuestion)}
             quizAnswerResult={quizAnswerResult}
             savedOrderIndices={
               orderItemsDraft && orderItemsDraft.questionId === quizQuestion.id

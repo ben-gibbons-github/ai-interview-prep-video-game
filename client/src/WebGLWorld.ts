@@ -96,9 +96,13 @@ function distanceSquaredXY(a: THREE.Vector3, b: THREE.Vector3): number {
   return dx * dx + dy * dy
 }
 
+function getActorLogicalPosition(actor: Actor): THREE.Vector3 {
+  return actor.getActualPosition()
+}
+
 function isClearAllyPosition(candidate: THREE.Vector3, player: Player, allies: AlliedFighter[]): boolean {
   const minPlayerDistanceSquared = MIN_ALLY_PLAYER_SEPARATION * MIN_ALLY_PLAYER_SEPARATION
-  if (distanceSquaredXY(candidate, player.group.position) < minPlayerDistanceSquared) {
+  if (distanceSquaredXY(candidate, getActorLogicalPosition(player)) < minPlayerDistanceSquared) {
     return false
   }
 
@@ -108,7 +112,7 @@ function isClearAllyPosition(candidate: THREE.Vector3, player: Player, allies: A
       continue
     }
 
-    if (distanceSquaredXY(candidate, ally.group.position) < minAllyDistanceSquared) {
+    if (distanceSquaredXY(candidate, getActorLogicalPosition(ally)) < minAllyDistanceSquared) {
       return false
     }
   }
@@ -207,12 +211,24 @@ function spawnKillGoldText(
 
   const text = `+${roundedGold}g${breakdownStr ? ` (${breakdownStr})` : ''}`
   const canvas = document.createElement('canvas')
-  canvas.width = 320
-  canvas.height = 128
+  const minCanvasWidth = 320
+  const maxCanvasWidth = 960
+  const canvasHeight = 128
+  const horizontalPadding = 56
+  const spriteBaseCanvasWidth = 320
+
+  canvas.width = minCanvasWidth
+  canvas.height = canvasHeight
   const context = canvas.getContext('2d')
   if (!context) {
     return
   }
+
+  context.font = 'bold 56px "Trebuchet MS", "Verdana", sans-serif'
+  const measuredWidth = context.measureText(text).width
+  const desiredCanvasWidth = Math.ceil(measuredWidth + horizontalPadding)
+  canvas.width = Math.max(minCanvasWidth, Math.min(maxCanvasWidth, desiredCanvasWidth))
+  canvas.height = canvasHeight
 
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.font = 'bold 56px "Trebuchet MS", "Verdana", sans-serif'
@@ -245,7 +261,8 @@ function spawnKillGoldText(
   })
 
   const sprite = new THREE.Sprite(material)
-  const baseScaleX = 1.85
+  const widthScaleMultiplier = Math.min(1.75, canvas.width / spriteBaseCanvasWidth)
+  const baseScaleX = 1.85 * widthScaleMultiplier
   const baseScaleY = 0.74
   sprite.scale.set(baseScaleX, baseScaleY, 1)
   sprite.position.set(origin[0], origin[1] + 0.9, origin[2] + 0.2)
@@ -317,9 +334,9 @@ function normalizeWorldActorSpread(player: Player, allies: AlliedFighter[], enem
   }
 
   const positions = actors.map((actor) => ({
-    x: actor.group.position.x,
-    y: actor.group.position.y,
-    z: actor.group.position.z,
+    x: getActorLogicalPosition(actor).x,
+    y: getActorLogicalPosition(actor).y,
+    z: getActorLogicalPosition(actor).z,
   }))
   const radii = actors.map((actor) => getActorLayoutRadius(actor))
   const targetXs: number[] = [PLAYER_LAYOUT_X]
@@ -441,11 +458,16 @@ export function mountWebGLWorld({
   hoverTooltip.style.fontFamily = 'Menlo, Monaco, monospace'
   hoverTooltip.style.fontSize = '11px'
   hoverTooltip.style.lineHeight = '1.4'
-  hoverTooltip.style.whiteSpace = 'pre'
-  hoverTooltip.style.transform = 'translate(-50%, -105%)'
+  hoverTooltip.style.whiteSpace = 'pre-wrap'
+  hoverTooltip.style.maxWidth = '320px'
+  hoverTooltip.style.overflowWrap = 'break-word'
+  hoverTooltip.style.transform = 'none'
   hoverTooltip.style.zIndex = '80'
   hoverTooltip.style.display = 'none'
   document.body.appendChild(hoverTooltip)
+
+  const hoverTooltipMargin = 8
+  const hoverTooltipGap = 10
 
   const raycaster = new THREE.Raycaster()
   const pointerNdc = new THREE.Vector2(2, 2)
@@ -503,10 +525,25 @@ export function mountWebGLWorld({
     }
 
     hoverTooltip.textContent = baseLines.join('\n')
-
-    hoverTooltip.style.left = `${screenX.toFixed(1)}px`
-    hoverTooltip.style.top = `${screenY.toFixed(1)}px`
     hoverTooltip.style.display = 'block'
+
+    const tooltipRect = hoverTooltip.getBoundingClientRect()
+    const maxLeft = Math.max(hoverTooltipMargin, window.innerWidth - hoverTooltipMargin - tooltipRect.width)
+    const maxTop = Math.max(hoverTooltipMargin, window.innerHeight - hoverTooltipMargin - tooltipRect.height)
+
+    let tooltipLeft = screenX - tooltipRect.width * 0.5
+    let tooltipTop = screenY - tooltipRect.height - hoverTooltipGap
+
+    // If there is not enough room above the actor, place the tooltip below instead.
+    if (tooltipTop < hoverTooltipMargin) {
+      tooltipTop = screenY + hoverTooltipGap
+    }
+
+    tooltipLeft = Math.max(hoverTooltipMargin, Math.min(maxLeft, tooltipLeft))
+    tooltipTop = Math.max(hoverTooltipMargin, Math.min(maxTop, tooltipTop))
+
+    hoverTooltip.style.left = `${tooltipLeft.toFixed(1)}px`
+    hoverTooltip.style.top = `${tooltipTop.toFixed(1)}px`
     hoveredActor = actor
   }
 

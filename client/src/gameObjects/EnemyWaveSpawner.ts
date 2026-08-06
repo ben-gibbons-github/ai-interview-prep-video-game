@@ -202,11 +202,11 @@ export class EnemyWaveSpawner {
 
       for (let leftIndex = 0; leftIndex < liveEnemies.length - 1; leftIndex += 1) {
         const leftEnemy = liveEnemies[leftIndex]
-        const leftPosition = leftEnemy.group.position
+        const leftPosition = leftEnemy.getActualPosition()
 
         for (let rightIndex = leftIndex + 1; rightIndex < liveEnemies.length; rightIndex += 1) {
           const rightEnemy = liveEnemies[rightIndex]
-          const rightPosition = rightEnemy.group.position
+          const rightPosition = rightEnemy.getActualPosition()
 
           const deltaX = rightPosition.x - leftPosition.x
           const deltaY = rightPosition.y - leftPosition.y
@@ -222,10 +222,16 @@ export class EnemyWaveSpawner {
           const axisY = deltaY / distance
           const push = overlap * 0.52
 
-          leftPosition.x -= axisX * push
-          leftPosition.y -= axisY * push
-          rightPosition.x += axisX * push
-          rightPosition.y += axisY * push
+          leftEnemy.setFormationPosition(
+            leftPosition.x - axisX * push,
+            leftPosition.y - axisY * push,
+            leftPosition.z,
+          )
+          rightEnemy.setFormationPosition(
+            rightPosition.x + axisX * push,
+            rightPosition.y + axisY * push,
+            rightPosition.z,
+          )
 
           movedAny = true
         }
@@ -369,6 +375,10 @@ export class EnemyWaveSpawner {
   }
 
   private registerEnemy(enemy: Enemy) {
+    if (this.activeEnemies.includes(enemy)) {
+      return
+    }
+
     enemy.setDeathEffectSpawner((effect) => {
       this.worldObject.addChild(effect)
 
@@ -394,8 +404,6 @@ export class EnemyWaveSpawner {
     })
     enemy.setSummonSpawner((summonedEnemy) => {
       this.registerEnemy(summonedEnemy)
-      this.worldObject.addChild(summonedEnemy)
-      this.activeEnemies.push(summonedEnemy)
 
       this.postOverlay({
         title: 'Summoner Spawned Reinforcement',
@@ -410,13 +418,15 @@ export class EnemyWaveSpawner {
   }
 
   private enforcePlayerDistance(enemies: Enemy[]) {
-    const playerX = this.player.group.position.x
-    const playerY = this.player.group.position.y
+    const playerPosition = this.player.getActualPosition()
+    const playerX = playerPosition.x
+    const playerY = playerPosition.y
     const minDistance = EnemyWaveSpawner.MIN_DISTANCE_FROM_PLAYER
 
     for (const enemy of enemies) {
-      const deltaX = enemy.group.position.x - playerX
-      const deltaY = enemy.group.position.y - playerY
+      const enemyPosition = enemy.getActualPosition()
+      const deltaX = enemyPosition.x - playerX
+      const deltaY = enemyPosition.y - playerY
       const distance = Math.hypot(deltaX, deltaY)
 
       if (distance >= minDistance) {
@@ -428,8 +438,11 @@ export class EnemyWaveSpawner {
       const axisY = deltaY / safeDistance
       const push = minDistance - safeDistance
 
-      enemy.group.position.x += axisX * push
-      enemy.group.position.y += axisY * push
+      enemy.setFormationPosition(
+        enemyPosition.x + axisX * push,
+        enemyPosition.y + axisY * push,
+        enemyPosition.z,
+      )
     }
   }
 }

@@ -32,6 +32,7 @@ export interface QuizQuestion {
   rawCoding?: RawCodingQuestionMeta
   validList?: ValidListQuestionMeta
   orderItems?: OrderItemsQuestionMeta
+  leetcodePatternTypeQuestion?: LeetcodePatternTypeQuestionMeta
   capacityQuestion?: CapacityQuestionMeta
   systemDesign?: SystemDesignQuestionMeta
   multiSectionSystemDesign?: MultiSectionSystemDesignQuestionMeta
@@ -51,6 +52,11 @@ export interface ValidListQuestionMeta {
 export interface OrderItemsQuestionMeta {
   items: string[]
   correctOrder: number[]
+  validOrders?: number[][]
+  helperText?: string
+}
+
+export interface LeetcodePatternTypeQuestionMeta {
   helperText?: string
 }
 
@@ -100,6 +106,7 @@ export interface QuizQuestionBankEntry {
   correctExplanation: string
   validList?: ValidListQuestionMeta
   orderItems?: OrderItemsQuestionMeta
+  leetcodePatternTypeQuestion?: LeetcodePatternTypeQuestionMeta
   capacityQuestion?: CapacityQuestionMeta
   systemDesign?: SystemDesignQuestionMeta
   multiSectionSystemDesign?: MultiSectionSystemDesignQuestionMeta
@@ -607,9 +614,13 @@ function normalizeQuestionBank(input: unknown): QuizQuestionBankEntry[] {
     }
 
     const candidate = entry as Partial<QuizQuestionBankEntry>
+    const candidateMultiSectionSystemDesign =
+      (candidate as { multiSectionSystemDesign?: unknown }).multiSectionSystemDesign
+    const hasMultiSectionSystemDesign = candidateMultiSectionSystemDesign !== undefined
+
     const hasValidOptions =
       Array.isArray(candidate.options) &&
-      candidate.options.length >= 2 &&
+      candidate.options.length >= (hasMultiSectionSystemDesign ? 1 : 2) &&
       candidate.options.every((option) => typeof option === 'string')
 
     const hasValidCorrectIndex =
@@ -702,9 +713,66 @@ function normalizeQuestionBank(input: unknown): QuizQuestionBankEntry[] {
         return false
       }
 
+      if (orderItems.validOrders !== undefined) {
+        if (!Array.isArray(orderItems.validOrders) || orderItems.validOrders.length === 0) {
+          return false
+        }
+
+        const validOrdersAreValid = orderItems.validOrders.every((candidateOrder) => {
+          if (!Array.isArray(candidateOrder) || candidateOrder.length !== orderItems.items!.length) {
+            return false
+          }
+
+          if (
+            !candidateOrder.every(
+              (index) =>
+                typeof index === 'number' &&
+                Number.isInteger(index) &&
+                index >= 0 &&
+                index < orderItems.items!.length,
+            )
+          ) {
+            return false
+          }
+
+          return new Set(candidateOrder).size === orderItems.items!.length
+        })
+
+        if (!validOrdersAreValid) {
+          return false
+        }
+      }
+
       if (
         orderItems.helperText !== undefined &&
         typeof orderItems.helperText !== 'string'
+      ) {
+        return false
+      }
+
+      return true
+    })()
+
+    const candidateLeetcodePatternTypeQuestion =
+      (candidate as { leetcodePatternTypeQuestion?: unknown }).leetcodePatternTypeQuestion
+    const hasValidLeetcodePatternTypeQuestion = (() => {
+      if (candidateLeetcodePatternTypeQuestion === undefined) {
+        return true
+      }
+
+      if (
+        typeof candidateLeetcodePatternTypeQuestion !== 'object' ||
+        candidateLeetcodePatternTypeQuestion === null
+      ) {
+        return false
+      }
+
+      const leetcodePatternTypeQuestion =
+        candidateLeetcodePatternTypeQuestion as Partial<LeetcodePatternTypeQuestionMeta>
+
+      if (
+        leetcodePatternTypeQuestion.helperText !== undefined &&
+        typeof leetcodePatternTypeQuestion.helperText !== 'string'
       ) {
         return false
       }
@@ -785,7 +853,6 @@ function normalizeQuestionBank(input: unknown): QuizQuestionBankEntry[] {
       return true
     })()
 
-    const candidateMultiSectionSystemDesign = (candidate as { multiSectionSystemDesign?: unknown }).multiSectionSystemDesign
     const hasValidMultiSectionSystemDesign = (() => {
       if (candidateMultiSectionSystemDesign === undefined) {
         return true
@@ -945,6 +1012,7 @@ function normalizeQuestionBank(input: unknown): QuizQuestionBankEntry[] {
       typeof candidate.correctExplanation === 'string' &&
       hasValidValidList &&
       hasValidOrderItems &&
+      hasValidLeetcodePatternTypeQuestion &&
       hasValidCapacityQuestion &&
       hasValidSystemDesign &&
       hasValidMultiSectionSystemDesign &&
@@ -969,6 +1037,7 @@ function getQuestionDeduplicationKey(question: QuizQuestionBankEntry): string {
   const structuredMetaDisambiguator = JSON.stringify({
     validList: question.validList,
     orderItems: question.orderItems,
+    leetcodePatternTypeQuestion: question.leetcodePatternTypeQuestion,
     capacityQuestion: question.capacityQuestion,
     systemDesign: question.systemDesign,
     multiSectionSystemDesign: question.multiSectionSystemDesign,
@@ -1162,19 +1231,21 @@ interface RuntimeQuestionBankState {
 }
 
 const STAR_STORY_QUESTION_ID_PREFIX = 'star-story-'
-const STAR_STORY_MATCHING_QUESTION_INTERVAL = 4
-const STAR_STORY_ORDERING_QUESTION_INTERVAL = 10
-const STAR_STORY_TITLE_QUESTION_INTERVAL = 6
+const STAR_STORY_MATCHING_QUESTION_INTERVAL = 5
+const STAR_STORY_ORDERING_QUESTION_INTERVAL = 11
+const STAR_STORY_TITLE_QUESTION_INTERVAL = 7
 const STAR_STORY_HARD_DUAL_ORDERING_REPLACEMENT_RATE = 0.2
 const STAR_STORY_HARD_QUAD_ORDERING_REPLACEMENT_RATE = 0.025
 const STAR_STORY_HARD_FULL_ORDERING_REPLACEMENT_RATE = 0.5
 const STAR_STORY_TRANSCRIPTION_REPLACEMENT_RATE = 0.7
-const SYSTEM_DESIGN_QUESTION_INTERVAL = 8
-const MULTI_SECTION_SYSTEM_DESIGN_QUESTION_INTERVAL = 9
+const SYSTEM_DESIGN_QUESTION_INTERVAL = 9
+const MULTI_SECTION_SYSTEM_DESIGN_QUESTION_INTERVAL = 10
+const RAW_CODING_PRIMARY_QUESTION_INTERVAL = 6
+const RAW_CODING_COLLISION_QUESTION_INTERVAL = 21
 const STAR_TRANSCRIPTION_DEBUG_LOGGING = true
 const STAR_WORKFLOW_DEBUG_LOGGING = true
 
-type CadenceSpecialQuestionType =
+export type CadenceSpecialQuestionType =
   | 'starStoryTitle'
   | 'starStorySectionOrdering'
   | 'starStoryMatching'
@@ -1183,6 +1254,256 @@ type CadenceSpecialQuestionType =
   | 'rawCoding'
 
 const cadenceSpecialQuestionQueue: CadenceSpecialQuestionType[] = []
+
+export interface QuizSelectionDebugSnapshot {
+  askedQuestionCount: number
+  questionPosition: number
+  targetDifficulty: QuizDifficulty
+  fallbackOrder: QuizDifficulty[]
+  micOnlyMode: boolean
+  rawCodingFrequencyMultiplier: number
+  cadenceDeferredQueue: CadenceSpecialQuestionType[]
+  cadenceDueNow: CadenceSpecialQuestionType[]
+  cadenceCountdowns: {
+    starStoryTitle: number
+    starStorySectionOrdering: number
+    starStoryMatching: number
+    systemDesign: number
+    multiSectionSystemDesign: number
+    rawCodingEveryFifth: number
+    rawCodingEveryTwentieth: number
+  }
+  cadenceAvailability: {
+    starStoryTitle: boolean
+    starStorySectionOrdering: boolean
+    starStoryMatching: boolean
+    systemDesign: boolean
+    multiSectionSystemDesign: boolean
+  }
+  cadenceAvailabilityReasons: {
+    starStoryTitle: string | null
+    starStorySectionOrdering: string | null
+    starStoryMatching: string | null
+    systemDesign: string | null
+    multiSectionSystemDesign: string | null
+  }
+}
+
+function getCadenceUnavailableReason(
+  askedQuestionIds: Set<string>,
+  options: {
+    label: string
+    focusEnabled: boolean
+    matchesCadenceType: (question: QuizQuestionBankEntry) => boolean
+  },
+): string | null {
+  const matchingQuestions = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(options.matchesCadenceType)
+  if (matchingQuestions.length === 0) {
+    return `no ${options.label} questions are loaded`
+  }
+
+  if (!options.focusEnabled) {
+    return `${options.label} focus toggle is off`
+  }
+
+  const advancedEligibleQuestions = matchingQuestions.filter((question) => isQuestionAllowedByAdvancedFocus(question))
+  if (advancedEligibleQuestions.length === 0) {
+    return `advanced filters exclude all ${options.label} questions`
+  }
+
+  const hasUnseenAdvancedEligibleQuestion = advancedEligibleQuestions.some(
+    (question) => !askedQuestionIds.has(question.id),
+  )
+  if (hasUnseenAdvancedEligibleQuestion) {
+    return null
+  }
+
+  // Fully-seen pools are recyclable, so they remain available.
+  return null
+}
+
+function countdownToInterval(questionPosition: number, interval: number): number {
+  if (interval <= 0) {
+    return Number.POSITIVE_INFINITY
+  }
+
+  const remainder = questionPosition % interval
+  return remainder === 0 ? 0 : interval - remainder
+}
+
+export function getQuizSelectionDebugSnapshot(
+  correctAnswers: number,
+  askedQuestionIds: Set<string>,
+  rawCodingFrequencyMultiplier = 1,
+): QuizSelectionDebugSnapshot {
+  const questionPosition = askedQuestionIds.size + 1
+  const targetDifficulty = getTargetDifficulty(correctAnswers)
+  const fallbackOrder: QuizDifficulty[] =
+    targetDifficulty === 'hard'
+      ? ['hard', 'medium']
+      : targetDifficulty === 'medium'
+        ? ['medium', 'hard']
+        : ['easy', 'medium', 'hard']
+
+  const systemDesignAvailable = hasAvailableSystemDesignQuestion(askedQuestionIds)
+  const multiSectionSystemDesignAvailable = hasAvailableMultiSectionSystemDesignQuestion(askedQuestionIds)
+  const rawCodingAvailable = ACTIVE_QUIZ_FOCUS_FILTERS.rawCode
+
+  const cadenceDueNow: CadenceSpecialQuestionType[] = []
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireTitle: true,
+      interval: STAR_STORY_TITLE_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueNow.push('starStoryTitle')
+  }
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireSectionOrdering: true,
+      interval: STAR_STORY_ORDERING_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueNow.push('starStorySectionOrdering')
+  }
+
+  if (
+    isStarStoryQuestionSlot(questionPosition, askedQuestionIds, {
+      requireMatching: true,
+      interval: STAR_STORY_MATCHING_QUESTION_INTERVAL,
+    })
+  ) {
+    cadenceDueNow.push('starStoryMatching')
+  }
+
+  if (isSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
+    cadenceDueNow.push('systemDesign')
+  }
+
+  if (isMultiSectionSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
+    cadenceDueNow.push('multiSectionSystemDesign')
+  }
+
+  const isRawCodingPrimarySlot = questionPosition % RAW_CODING_PRIMARY_QUESTION_INTERVAL === 0
+  const isRawCodingCollisionSlot = questionPosition % RAW_CODING_COLLISION_QUESTION_INTERVAL === 0
+
+  if (isRawCodingPrimarySlot) {
+    if (isRawCodingCollisionSlot) {
+      if (systemDesignAvailable) {
+        cadenceDueNow.push('systemDesign')
+      }
+      if (multiSectionSystemDesignAvailable) {
+        cadenceDueNow.push('multiSectionSystemDesign')
+      }
+      if (rawCodingAvailable) {
+        cadenceDueNow.push('rawCoding')
+      }
+    } else {
+      if (rawCodingAvailable) {
+        cadenceDueNow.push('rawCoding')
+      }
+      if (systemDesignAvailable) {
+        cadenceDueNow.push('systemDesign')
+      }
+      if (multiSectionSystemDesignAvailable) {
+        cadenceDueNow.push('multiSectionSystemDesign')
+      }
+    }
+  }
+
+  const uniqueCadenceDueNow: CadenceSpecialQuestionType[] = []
+  const seenCadenceTypes = new Set<CadenceSpecialQuestionType>()
+  for (const cadenceType of cadenceDueNow) {
+    if (seenCadenceTypes.has(cadenceType)) {
+      continue
+    }
+
+    seenCadenceTypes.add(cadenceType)
+    uniqueCadenceDueNow.push(cadenceType)
+  }
+
+  const starStoryTitleAvailable = hasAvailableStarStoryQuestion(askedQuestionIds, { requireTitle: true })
+  const starStorySectionOrderingAvailable = hasAvailableStarStoryQuestion(askedQuestionIds, {
+    requireSectionOrdering: true,
+  })
+  const starStoryMatchingAvailable = hasAvailableStarStoryQuestion(askedQuestionIds, { requireMatching: true })
+
+  const starStoryTitleUnavailableReason = starStoryTitleAvailable
+    ? null
+    : getCadenceUnavailableReason(askedQuestionIds, {
+        label: 'STAR story title',
+        focusEnabled: ACTIVE_QUIZ_FOCUS_FILTERS.starStories,
+        matchesCadenceType: (question) => isStarStoryTitleQuestion(question),
+      })
+
+  const starStorySectionOrderingUnavailableReason = starStorySectionOrderingAvailable
+    ? null
+    : getCadenceUnavailableReason(askedQuestionIds, {
+        label: 'STAR story section ordering',
+        focusEnabled: ACTIVE_QUIZ_FOCUS_FILTERS.starStories,
+        matchesCadenceType: (question) => isStarStorySectionOrderingQuestion(question),
+      })
+
+  const starStoryMatchingUnavailableReason = starStoryMatchingAvailable
+    ? null
+    : getCadenceUnavailableReason(askedQuestionIds, {
+        label: 'STAR story matching',
+        focusEnabled: ACTIVE_QUIZ_FOCUS_FILTERS.starStories,
+        matchesCadenceType: (question) => isStarStoryMatchingQuestion(question),
+      })
+
+  const systemDesignUnavailableReason = systemDesignAvailable
+    ? null
+    : getCadenceUnavailableReason(askedQuestionIds, {
+        label: 'system design',
+        focusEnabled: ACTIVE_QUIZ_FOCUS_FILTERS.systemDesign,
+        matchesCadenceType: (question) => question.systemDesign !== undefined,
+      })
+
+  const multiSectionSystemDesignUnavailableReason = multiSectionSystemDesignAvailable
+    ? null
+    : getCadenceUnavailableReason(askedQuestionIds, {
+        label: 'multi-section system design',
+        focusEnabled: ACTIVE_QUIZ_FOCUS_FILTERS.systemDesign,
+        matchesCadenceType: (question) => question.multiSectionSystemDesign !== undefined,
+      })
+
+  return {
+    askedQuestionCount: askedQuestionIds.size,
+    questionPosition,
+    targetDifficulty,
+    fallbackOrder,
+    micOnlyMode: ACTIVE_QUIZ_FOCUS_FILTERS.micOnlyMode,
+    rawCodingFrequencyMultiplier: Math.max(1, rawCodingFrequencyMultiplier),
+    cadenceDeferredQueue: [...cadenceSpecialQuestionQueue],
+    cadenceDueNow: uniqueCadenceDueNow,
+    cadenceCountdowns: {
+      starStoryTitle: countdownToInterval(questionPosition, STAR_STORY_TITLE_QUESTION_INTERVAL),
+      starStorySectionOrdering: countdownToInterval(questionPosition, STAR_STORY_ORDERING_QUESTION_INTERVAL),
+      starStoryMatching: countdownToInterval(questionPosition, STAR_STORY_MATCHING_QUESTION_INTERVAL),
+      systemDesign: countdownToInterval(questionPosition, SYSTEM_DESIGN_QUESTION_INTERVAL),
+      multiSectionSystemDesign: countdownToInterval(questionPosition, MULTI_SECTION_SYSTEM_DESIGN_QUESTION_INTERVAL),
+      rawCodingEveryFifth: countdownToInterval(questionPosition, RAW_CODING_PRIMARY_QUESTION_INTERVAL),
+      rawCodingEveryTwentieth: countdownToInterval(questionPosition, RAW_CODING_COLLISION_QUESTION_INTERVAL),
+    },
+    cadenceAvailability: {
+      starStoryTitle: starStoryTitleAvailable,
+      starStorySectionOrdering: starStorySectionOrderingAvailable,
+      starStoryMatching: starStoryMatchingAvailable,
+      systemDesign: systemDesignAvailable,
+      multiSectionSystemDesign: multiSectionSystemDesignAvailable,
+    },
+    cadenceAvailabilityReasons: {
+      starStoryTitle: starStoryTitleUnavailableReason,
+      starStorySectionOrdering: starStorySectionOrderingUnavailableReason,
+      starStoryMatching: starStoryMatchingUnavailableReason,
+      systemDesign: systemDesignUnavailableReason,
+      multiSectionSystemDesign: multiSectionSystemDesignUnavailableReason,
+    },
+  }
+}
 
 function isQuestionAllowedByFocusFilters(question: QuizQuestionBankEntry): boolean {
   if (question.transcriptionQuestion) {
@@ -1446,47 +1767,59 @@ function hasAvailableStarStoryQuestion(
     requireTitle?: boolean
   },
 ): boolean {
-  return QUIZ_QUESTIONS_IN_RANDOM_ORDER.some(
-    (question) => {
-      if (!isStarStoryQuestionId(question.id) || askedQuestionIds.has(question.id)) {
-        return false
-      }
+  if (!ACTIVE_QUIZ_FOCUS_FILTERS.starStories) {
+    return false
+  }
 
-      if (!isQuestionAllowedByAdvancedFocus(question)) {
-        return false
-      }
+  let hasEligibleQuestion = false
+  let hasUnseenEligibleQuestion = false
 
-      if (options?.requireOrdering) {
-        return isStarStoryOrderingQuestion(question)
-      }
+  for (const question of QUIZ_QUESTIONS_IN_RANDOM_ORDER) {
+    if (!isStarStoryQuestionId(question.id)) {
+      continue
+    }
 
-      if (options?.requireSectionOrdering) {
-        return isStarStorySectionOrderingQuestion(question)
-      }
+    if (!isQuestionAllowedByAdvancedFocus(question)) {
+      continue
+    }
 
-      if (options?.requireFullOrdering) {
-        return isStarStoryFullOrderingQuestion(question)
-      }
+    if (options?.requireOrdering && !isStarStoryOrderingQuestion(question)) {
+      continue
+    }
 
-      if (options?.requireDualOrdering) {
-        return isStarStoryDualOrderingQuestion(question)
-      }
+    if (options?.requireSectionOrdering && !isStarStorySectionOrderingQuestion(question)) {
+      continue
+    }
 
-      if (options?.requireQuadOrdering) {
-        return isStarStoryQuadOrderingQuestion(question)
-      }
+    if (options?.requireFullOrdering && !isStarStoryFullOrderingQuestion(question)) {
+      continue
+    }
 
-      if (options?.requireMatching) {
-        return isStarStoryMatchingQuestion(question)
-      }
+    if (options?.requireDualOrdering && !isStarStoryDualOrderingQuestion(question)) {
+      continue
+    }
 
-      if (options?.requireTitle) {
-        return isStarStoryTitleQuestion(question)
-      }
+    if (options?.requireQuadOrdering && !isStarStoryQuadOrderingQuestion(question)) {
+      continue
+    }
 
-      return true
-    },
-  )
+    if (options?.requireMatching && !isStarStoryMatchingQuestion(question)) {
+      continue
+    }
+
+    if (options?.requireTitle && !isStarStoryTitleQuestion(question)) {
+      continue
+    }
+
+    hasEligibleQuestion = true
+    if (!askedQuestionIds.has(question.id)) {
+      hasUnseenEligibleQuestion = true
+      break
+    }
+  }
+
+  // Treat fully-seen eligible pools as available because exhausted pools are recycled on pick.
+  return hasUnseenEligibleQuestion || hasEligibleQuestion
 }
 
 function isStarStoryQuestionSlot(
@@ -1519,12 +1852,23 @@ function hasAvailableSystemDesignQuestion(askedQuestionIds: Set<string>): boolea
     return false
   }
 
-  return QUIZ_QUESTIONS_IN_RANDOM_ORDER.some(
-    (question) =>
-      question.systemDesign !== undefined &&
-      isQuestionAllowedByAdvancedFocus(question) &&
-      !askedQuestionIds.has(question.id),
-  )
+  let hasEligibleQuestion = false
+  let hasUnseenEligibleQuestion = false
+
+  for (const question of QUIZ_QUESTIONS_IN_RANDOM_ORDER) {
+    if (question.systemDesign === undefined || !isQuestionAllowedByAdvancedFocus(question)) {
+      continue
+    }
+
+    hasEligibleQuestion = true
+    if (!askedQuestionIds.has(question.id)) {
+      hasUnseenEligibleQuestion = true
+      break
+    }
+  }
+
+  // Treat fully-seen eligible pools as available because exhausted pools are recycled on pick.
+  return hasUnseenEligibleQuestion || hasEligibleQuestion
 }
 
 function isSystemDesignQuestionSlot(questionPosition: number, askedQuestionIds: Set<string>): boolean {
@@ -1544,12 +1888,23 @@ function hasAvailableMultiSectionSystemDesignQuestion(askedQuestionIds: Set<stri
     return false
   }
 
-  return QUIZ_QUESTIONS_IN_RANDOM_ORDER.some(
-    (question) =>
-      question.multiSectionSystemDesign !== undefined &&
-      isQuestionAllowedByAdvancedFocus(question) &&
-      !askedQuestionIds.has(question.id),
-  )
+  let hasEligibleQuestion = false
+  let hasUnseenEligibleQuestion = false
+
+  for (const question of QUIZ_QUESTIONS_IN_RANDOM_ORDER) {
+    if (question.multiSectionSystemDesign === undefined || !isQuestionAllowedByAdvancedFocus(question)) {
+      continue
+    }
+
+    hasEligibleQuestion = true
+    if (!askedQuestionIds.has(question.id)) {
+      hasUnseenEligibleQuestion = true
+      break
+    }
+  }
+
+  // Treat fully-seen eligible pools as available because exhausted pools are recycled on pick.
+  return hasUnseenEligibleQuestion || hasEligibleQuestion
 }
 
 function isMultiSectionSystemDesignQuestionSlot(questionPosition: number, askedQuestionIds: Set<string>): boolean {
@@ -1874,6 +2229,8 @@ function toQuestionKind(question: QuizQuestionBankEntry): QuizQuestionKind {
       ? 'multiSectionSystemDesign'
     : question.systemDesign
     ? 'systemDesign'
+    : question.leetcodePatternTypeQuestion
+      ? 'leetcodePatternType'
     : question.capacityQuestion
       ? 'capacity'
       : question.orderItems
@@ -1881,6 +2238,27 @@ function toQuestionKind(question: QuizQuestionBankEntry): QuizQuestionKind {
         : question.validList
           ? 'validList'
           : 'multipleChoice'
+}
+
+function recycleSeenQuestionIdsIfExhausted(
+  askedQuestionIds: Set<string>,
+  isEligibleQuestion: (question: QuizQuestionBankEntry) => boolean,
+): boolean {
+  const eligibleQuestionIds = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(isEligibleQuestion).map((question) => question.id)
+  if (eligibleQuestionIds.length === 0) {
+    return false
+  }
+
+  const allEligibleAlreadySeen = eligibleQuestionIds.every((questionId) => askedQuestionIds.has(questionId))
+  if (!allEligibleAlreadySeen) {
+    return false
+  }
+
+  eligibleQuestionIds.forEach((questionId) => {
+    askedQuestionIds.delete(questionId)
+  })
+
+  return true
 }
 
 function pickQuestionFromPool(
@@ -1901,13 +2279,13 @@ function pickQuestionFromPool(
     requireStarStoryTitle?: boolean
   },
 ): QuizQuestion | null {
-  for (const difficulty of fallbackOrder) {
-    const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter((question) => {
+  const allowedDifficultySet = new Set<QuizDifficulty>(fallbackOrder)
+
+  const isEligibleQuestion = (question: QuizQuestionBankEntry, difficulty: QuizDifficulty): boolean => {
       if (question.transcriptionQuestion) return false
       if (!isQuestionAllowedByFocusFilters(question)) return false
       if (!isQuestionAllowedByAdvancedFocus(question)) return false
       if (toBaseQuizDifficulty(question.difficulty) !== difficulty) return false
-      if (askedQuestionIds.has(question.id)) return false
       if (options?.allowMultiSectionSystemDesign === false && question.multiSectionSystemDesign) return false
 
       const isStarStoryQuestion = isStarStoryQuestionId(question.id)
@@ -1951,23 +2329,47 @@ function pickQuestionFromPool(
       }
 
       return true
-    })
-
-    if (pool.length > 0) {
-      const questionEntry = pool[0]
-      const question = shuffleQuestionOptions(questionEntry)
-      askedQuestionIds.add(question.id)
-      return {
-        ...question,
-        kind: toQuestionKind(questionEntry),
-        questionIndex: questionPosition,
-        totalQuestions: totalAvailableQuestions,
-        seenQuestionsBeforeCurrent: questionPosition - 1,
-      }
-    }
   }
 
-  return null
+  const pickFromPool = (): QuizQuestion | null => {
+    for (const difficulty of fallbackOrder) {
+      const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(
+        (question) => isEligibleQuestion(question, difficulty) && !askedQuestionIds.has(question.id),
+      )
+
+      if (pool.length > 0) {
+        const questionEntry = pool[0]
+        const question = shuffleQuestionOptions(questionEntry)
+        askedQuestionIds.add(question.id)
+        return {
+          ...question,
+          kind: toQuestionKind(questionEntry),
+          questionIndex: questionPosition,
+          totalQuestions: totalAvailableQuestions,
+          seenQuestionsBeforeCurrent: questionPosition - 1,
+        }
+      }
+    }
+
+    return null
+  }
+
+  const initialPick = pickFromPool()
+  if (initialPick) {
+    return initialPick
+  }
+
+  const recycledSeenIds = recycleSeenQuestionIdsIfExhausted(
+    askedQuestionIds,
+    (question) => isEligibleQuestion(question, toBaseQuizDifficulty(question.difficulty)) &&
+      allowedDifficultySet.has(toBaseQuizDifficulty(question.difficulty)),
+  )
+
+  if (!recycledSeenIds) {
+    return null
+  }
+
+  return pickFromPool()
 }
 
 function pickSystemDesignQuestionFromPool(
@@ -1976,31 +2378,53 @@ function pickSystemDesignQuestionFromPool(
   questionPosition: number,
   totalAvailableQuestions: number,
 ): QuizQuestion | null {
-  for (const difficulty of fallbackOrder) {
-    const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(
-      (question) =>
+  const isEligibleSystemDesignQuestion = (question: QuizQuestionBankEntry, difficulty: QuizDifficulty): boolean =>
         isQuestionAllowedByFocusFilters(question) &&
         isQuestionAllowedByAdvancedFocus(question) &&
         toBaseQuizDifficulty(question.difficulty) === difficulty &&
-        question.systemDesign !== undefined &&
-        !askedQuestionIds.has(question.id),
-    )
+        question.systemDesign !== undefined
 
-    if (pool.length > 0) {
-      const questionEntry = pool[0]
-      const question = shuffleQuestionOptions(questionEntry)
-      askedQuestionIds.add(question.id)
-      return {
-        ...question,
-        kind: toQuestionKind(questionEntry),
-        questionIndex: questionPosition,
-        totalQuestions: totalAvailableQuestions,
-        seenQuestionsBeforeCurrent: questionPosition - 1,
+  const pickFromPool = (): QuizQuestion | null => {
+    for (const difficulty of fallbackOrder) {
+      const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(
+        (question) => isEligibleSystemDesignQuestion(question, difficulty) && !askedQuestionIds.has(question.id),
+      )
+
+      if (pool.length > 0) {
+        const questionEntry = pool[0]
+        const question = shuffleQuestionOptions(questionEntry)
+        askedQuestionIds.add(question.id)
+        return {
+          ...question,
+          kind: toQuestionKind(questionEntry),
+          questionIndex: questionPosition,
+          totalQuestions: totalAvailableQuestions,
+          seenQuestionsBeforeCurrent: questionPosition - 1,
+        }
       }
     }
+
+    return null
   }
 
-  return null
+  const initialPick = pickFromPool()
+  if (initialPick) {
+    return initialPick
+  }
+
+  const difficultySet = new Set<QuizDifficulty>(fallbackOrder)
+  const recycledSeenIds = recycleSeenQuestionIdsIfExhausted(
+    askedQuestionIds,
+    (question) =>
+      difficultySet.has(toBaseQuizDifficulty(question.difficulty)) &&
+      isEligibleSystemDesignQuestion(question, toBaseQuizDifficulty(question.difficulty)),
+  )
+
+  if (!recycledSeenIds) {
+    return null
+  }
+
+  return pickFromPool()
 }
 
 function pickMultiSectionSystemDesignQuestionFromPool(
@@ -2009,31 +2433,57 @@ function pickMultiSectionSystemDesignQuestionFromPool(
   questionPosition: number,
   totalAvailableQuestions: number,
 ): QuizQuestion | null {
-  for (const difficulty of fallbackOrder) {
-    const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(
-      (question) =>
+  const isEligibleMultiSectionSystemDesignQuestion = (
+    question: QuizQuestionBankEntry,
+    difficulty: QuizDifficulty,
+  ): boolean =>
         isQuestionAllowedByFocusFilters(question) &&
         isQuestionAllowedByAdvancedFocus(question) &&
         toBaseQuizDifficulty(question.difficulty) === difficulty &&
-        question.multiSectionSystemDesign !== undefined &&
-        !askedQuestionIds.has(question.id),
-    )
+        question.multiSectionSystemDesign !== undefined
 
-    if (pool.length > 0) {
-      const questionEntry = pool[0]
-      const question = shuffleQuestionOptions(questionEntry)
-      askedQuestionIds.add(question.id)
-      return {
-        ...question,
-        kind: toQuestionKind(questionEntry),
-        questionIndex: questionPosition,
-        totalQuestions: totalAvailableQuestions,
-        seenQuestionsBeforeCurrent: questionPosition - 1,
+  const pickFromPool = (): QuizQuestion | null => {
+    for (const difficulty of fallbackOrder) {
+      const pool = QUIZ_QUESTIONS_IN_RANDOM_ORDER.filter(
+        (question) =>
+          isEligibleMultiSectionSystemDesignQuestion(question, difficulty) && !askedQuestionIds.has(question.id),
+      )
+
+      if (pool.length > 0) {
+        const questionEntry = pool[0]
+        const question = shuffleQuestionOptions(questionEntry)
+        askedQuestionIds.add(question.id)
+        return {
+          ...question,
+          kind: toQuestionKind(questionEntry),
+          questionIndex: questionPosition,
+          totalQuestions: totalAvailableQuestions,
+          seenQuestionsBeforeCurrent: questionPosition - 1,
+        }
       }
     }
+
+    return null
   }
 
-  return null
+  const initialPick = pickFromPool()
+  if (initialPick) {
+    return initialPick
+  }
+
+  const difficultySet = new Set<QuizDifficulty>(fallbackOrder)
+  const recycledSeenIds = recycleSeenQuestionIdsIfExhausted(
+    askedQuestionIds,
+    (question) =>
+      difficultySet.has(toBaseQuizDifficulty(question.difficulty)) &&
+      isEligibleMultiSectionSystemDesignQuestion(question, toBaseQuizDifficulty(question.difficulty)),
+  )
+
+  if (!recycledSeenIds) {
+    return null
+  }
+
+  return pickFromPool()
 }
 
 function countRuntimeQuestionAvailability(runtimeBanks: Map<string, RuntimeQuestionBankState>): AvailabilityByDifficulty {
@@ -2065,6 +2515,10 @@ const rawEasyOrderItemsQuestionBanks = import.meta.glob('./orderItems/easy/*.ts'
   eager: true,
   import: 'default',
 }) as Record<string, unknown>
+const rawEasyLeetcodePatternTypeQuestionBanks = import.meta.glob('./rawCodeTypeQuestions/easy/*.ts', {
+  eager: true,
+  import: 'default',
+}) as Record<string, unknown>
 const rawEasyCapacityQuestionBanks = import.meta.glob('./capacityQuestions/easy/*.ts', {
   eager: true,
   import: 'default',
@@ -2083,6 +2537,10 @@ const rawMediumValidListQuestionBanks = import.meta.glob('./validList/medium/*.t
   import: 'default',
 }) as Record<string, unknown>
 const rawMediumOrderItemsQuestionBanks = import.meta.glob('./orderItems/medium/*.ts', {
+  eager: true,
+  import: 'default',
+}) as Record<string, unknown>
+const rawMediumLeetcodePatternTypeQuestionBanks = import.meta.glob('./rawCodeTypeQuestions/medium/*.ts', {
   eager: true,
   import: 'default',
 }) as Record<string, unknown>
@@ -2108,6 +2566,10 @@ const rawHardValidListQuestionBanks = import.meta.glob('./validList/hard/*.ts', 
   import: 'default',
 }) as Record<string, unknown>
 const rawHardOrderItemsQuestionBanks = import.meta.glob('./orderItems/hard/*.ts', {
+  eager: true,
+  import: 'default',
+}) as Record<string, unknown>
+const rawHardLeetcodePatternTypeQuestionBanks = import.meta.glob('./rawCodeTypeQuestions/hard/*.ts', {
   eager: true,
   import: 'default',
 }) as Record<string, unknown>
@@ -2138,6 +2600,7 @@ const allEasyQuestionBanks = {
   ...rawEasyOofnQuestionBanks,
   ...rawEasyValidListQuestionBanks,
   ...rawEasyOrderItemsQuestionBanks,
+  ...rawEasyLeetcodePatternTypeQuestionBanks,
   ...rawEasyCapacityQuestionBanks,
   ...rawEasySystemDesignBanks,
 }
@@ -2147,6 +2610,7 @@ const allMediumQuestionBanks = {
   ...rawMediumOofnQuestionBanks,
   ...rawMediumValidListQuestionBanks,
   ...rawMediumOrderItemsQuestionBanks,
+  ...rawMediumLeetcodePatternTypeQuestionBanks,
   ...rawMediumCapacityQuestionBanks,
   ...rawMediumSystemDesignBanks,
 }
@@ -2157,6 +2621,7 @@ const allHardQuestionBanks = {
   ...rawCtoQuestionBanks,
   ...rawHardValidListQuestionBanks,
   ...rawHardOrderItemsQuestionBanks,
+  ...rawHardLeetcodePatternTypeQuestionBanks,
   ...rawHardCapacityQuestionBanks,
   ...rawHardSystemDesignBanks,
   ...rawHardMultiSectionSystemDesignBanks,
@@ -2522,8 +2987,8 @@ export function getNextQuizQuestion(
     )
   }
 
-  const isThirdSlot = questionPosition % 3 === 0
-  const isTwelfthSlot = questionPosition % 12 === 0
+  const isRawCodingPrimarySlot = questionPosition % RAW_CODING_PRIMARY_QUESTION_INTERVAL === 0
+  const isRawCodingCollisionSlot = questionPosition % RAW_CODING_COLLISION_QUESTION_INTERVAL === 0
   const normalizedRawCodingFrequencyMultiplier = Math.max(1, rawCodingFrequencyMultiplier)
 
   const maybePickRawCodingQuestion = (): QuizQuestion | null => {
@@ -2551,7 +3016,7 @@ export function getNextQuizQuestion(
   }
 
   const pickMultiSectionSystemDesignQuestion = (): QuizQuestion | null => {
-    if (!ACTIVE_QUIZ_FOCUS_FILTERS.systemDesign || targetDifficulty !== 'hard') {
+    if (!ACTIVE_QUIZ_FOCUS_FILTERS.systemDesign) {
       return null
     }
 
@@ -2673,6 +3138,10 @@ export function getNextQuizQuestion(
     cadenceDueSpecialTypes.push('starStoryMatching')
   }
 
+  const systemDesignAvailable = hasAvailableSystemDesignQuestion(askedQuestionIds)
+  const multiSectionSystemDesignAvailable = hasAvailableMultiSectionSystemDesignQuestion(askedQuestionIds)
+  const rawCodingAvailable = ACTIVE_QUIZ_FOCUS_FILTERS.rawCode
+
   if (isSystemDesignQuestionSlot(questionPosition, askedQuestionIds)) {
     cadenceDueSpecialTypes.push('systemDesign')
   }
@@ -2681,15 +3150,27 @@ export function getNextQuizQuestion(
     cadenceDueSpecialTypes.push('multiSectionSystemDesign')
   }
 
-  if (isThirdSlot) {
-    if (isTwelfthSlot) {
-      cadenceDueSpecialTypes.push('systemDesign')
-      cadenceDueSpecialTypes.push('multiSectionSystemDesign')
-      cadenceDueSpecialTypes.push('rawCoding')
+  if (isRawCodingPrimarySlot) {
+    if (isRawCodingCollisionSlot) {
+      if (systemDesignAvailable) {
+        cadenceDueSpecialTypes.push('systemDesign')
+      }
+      if (multiSectionSystemDesignAvailable) {
+        cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+      }
+      if (rawCodingAvailable) {
+        cadenceDueSpecialTypes.push('rawCoding')
+      }
     } else {
-      cadenceDueSpecialTypes.push('rawCoding')
-      cadenceDueSpecialTypes.push('systemDesign')
-      cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+      if (rawCodingAvailable) {
+        cadenceDueSpecialTypes.push('rawCoding')
+      }
+      if (systemDesignAvailable) {
+        cadenceDueSpecialTypes.push('systemDesign')
+      }
+      if (multiSectionSystemDesignAvailable) {
+        cadenceDueSpecialTypes.push('multiSectionSystemDesign')
+      }
     }
   }
 
@@ -2707,7 +3188,10 @@ export function getNextQuizQuestion(
 
   if (uniqueCadenceDueSpecialTypes.length > 0) {
     for (let index = 1; index < uniqueCadenceDueSpecialTypes.length; index += 1) {
-      cadenceSpecialQuestionQueue.push(uniqueCadenceDueSpecialTypes[index])
+      const deferredCadenceType = uniqueCadenceDueSpecialTypes[index]
+      if (!cadenceSpecialQuestionQueue.includes(deferredCadenceType)) {
+        cadenceSpecialQuestionQueue.push(deferredCadenceType)
+      }
     }
 
     for (const cadenceType of uniqueCadenceDueSpecialTypes) {
@@ -2718,7 +3202,9 @@ export function getNextQuizQuestion(
     }
   } else {
     // No cadence-special due this slot: replay deferred special cadence picks first-in-first-out.
-    while (cadenceSpecialQuestionQueue.length > 0) {
+    const queuedCadenceCount = cadenceSpecialQuestionQueue.length
+
+    for (let attempt = 0; attempt < queuedCadenceCount; attempt += 1) {
       const queuedCadenceType = cadenceSpecialQuestionQueue.shift()
       if (!queuedCadenceType) {
         break
@@ -2728,16 +3214,20 @@ export function getNextQuizQuestion(
       if (queuedSpecialQuestion) {
         return queuedSpecialQuestion
       }
+
+      // Preserve deferred cadence entries that cannot be picked on this slot
+      // so the queue remains stable instead of being dropped and rebuilt.
+      cadenceSpecialQuestionQueue.push(queuedCadenceType)
     }
   }
 
   if (normalizedRawCodingFrequencyMultiplier > 1) {
-    // Base frequency is every 3rd slot (1/3). Extra chance on other slots raises effective frequency.
-    const nonThirdSlotExtraRawCodingChance = Math.max(
+    // Base frequency is every Nth slot. Extra chance on other slots raises effective frequency.
+    const nonFifthSlotExtraRawCodingChance = Math.max(
       0,
       Math.min(1, (normalizedRawCodingFrequencyMultiplier - 1) / 2),
     )
-    if (!isThirdSlot && Math.random() < nonThirdSlotExtraRawCodingChance) {
+    if (!isRawCodingPrimarySlot && Math.random() < nonFifthSlotExtraRawCodingChance) {
       const extraRawCodingQuestion = maybePickRawCodingQuestion()
       if (extraRawCodingQuestion) {
         return extraRawCodingQuestion

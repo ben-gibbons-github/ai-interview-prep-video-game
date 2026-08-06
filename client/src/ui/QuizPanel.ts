@@ -18,6 +18,7 @@ export interface QuizWorldControls {
   tickFreeze: (delta: number) => void
   handleCombatQuizVisibility: (shouldShowQuiz: boolean) => boolean
   grantRoundStartFreeze: () => void
+  queueLifeLossReorderQuestion: () => void
   resetQuizState: () => void
   getSaveState: () => QuizSaveState
   restoreSaveState: (saveState: QuizSaveState | null | undefined) => void

@@ -7,6 +7,7 @@ const ORDER_MARKER_REVEAL_DELAY_MS = 3000
 interface QuizPanelQuestionOrderProps {
   questionId: string
   orderItems: OrderItemsQuestionMeta
+  acceptedOrders?: number[][]
   quizAnswerResult: 'correct' | 'incorrect' | null
   savedOrderIndices?: number[] | null
   onOrderChange?: (orderedIndices: number[]) => void
@@ -39,9 +40,46 @@ function isValidSavedOrderIndices(savedOrderIndices: number[] | null | undefined
   )
 }
 
+function isValidOrderPermutation(order: number[], itemCount: number): boolean {
+  if (!Array.isArray(order) || order.length !== itemCount) {
+    return false
+  }
+
+  return (
+    order.every((index) => typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < itemCount) &&
+    new Set(order).size === itemCount
+  )
+}
+
+function getAcceptedOrders(orderItems: OrderItemsQuestionMeta): number[][] {
+  const itemCount = orderItems.items.length
+  const candidateValidOrders = Array.isArray(orderItems.validOrders)
+    ? orderItems.validOrders.filter((candidateOrder) => isValidOrderPermutation(candidateOrder, itemCount))
+    : []
+
+  if (candidateValidOrders.length > 0) {
+    return candidateValidOrders
+  }
+
+  if (isValidOrderPermutation(orderItems.correctOrder, itemCount)) {
+    return [orderItems.correctOrder]
+  }
+
+  return []
+}
+
+function isOrderAccepted(orderedQueueIndices: number[], acceptedOrders: number[][]): boolean {
+  return acceptedOrders.some(
+    (candidateOrder) =>
+      orderedQueueIndices.length === candidateOrder.length &&
+      orderedQueueIndices.every((value, index) => value === candidateOrder[index]),
+  )
+}
+
 export function QuizPanelQuestionOrder({
   questionId,
   orderItems,
+  acceptedOrders,
   quizAnswerResult,
   savedOrderIndices,
   onOrderChange,
@@ -419,9 +457,11 @@ export function QuizPanelQuestionOrder({
     onSubmitOrder(orderedQueueIndices, { isSkip: false })
   }
 
-  const isOrderCorrect =
-    orderedQueueIndices.length === orderItems.correctOrder.length &&
-    orderedQueueIndices.every((value, index) => value === orderItems.correctOrder[index])
+  const activeAcceptedOrders =
+    Array.isArray(acceptedOrders) && acceptedOrders.length > 0
+      ? acceptedOrders
+      : getAcceptedOrders(orderItems)
+  const isOrderCorrect = isOrderAccepted(orderedQueueIndices, activeAcceptedOrders)
 
   const shouldShowCornerBins = draggingQueueIndex !== null && quizAnswerResult === null
   const cornerBins = shouldShowCornerBins ? (
@@ -485,9 +525,9 @@ export function QuizPanelQuestionOrder({
           />
         </li>
         {orderedQueueIndices.map((itemIndex, queueIndex) => {
-          const isOutOfSequence =
-            queueIndex < orderItems.correctOrder.length &&
-            itemIndex !== orderItems.correctOrder[queueIndex]
+          const isOutOfSequence = !activeAcceptedOrders.some(
+            (candidateOrder) => queueIndex < candidateOrder.length && itemIndex === candidateOrder[queueIndex],
+          )
           const shouldShowLoadingMarker = !showOutOfSequenceMarkers && quizAnswerResult === null
 
           return (

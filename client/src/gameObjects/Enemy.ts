@@ -28,6 +28,7 @@ export interface EnemyOptions {
   spriteScale?: number
   healthbarScale?: number
   healthbarOffsetY?: number
+  bubblesRemaining?: number
 }
 
 const GLOBAL_FIRE_RATE_MULTIPLIER = 1
@@ -40,6 +41,7 @@ const SUMMONER_REINFORCEMENT_HEALTHBAR_SCALE = 0.5
 const SUMMONER_REINFORCEMENT_HEALTHBAR_OFFSET_Y = 1.05
 const SUMMONER_REINFORCEMENT_MIN_VERTICAL_OFFSET = 1.35
 const SUMMONER_REINFORCEMENT_VERTICAL_JITTER = 0.42
+const MAX_BUBBLER_BUBBLES = 10
 
 function getEnemyStyle(kind: EnemyKind) {
   if (kind === 'boss') {
@@ -154,6 +156,7 @@ export class Enemy extends Actor {
   private readonly isSummonerReinforcement: boolean
   private readonly bubbleFreezeIntervalSeconds: number
   private readonly bubbleFreezeDurationSeconds: number
+  private bubblesRemaining = 0
   private readonly saveId: string
   private burnStatusFxCooldown = 0
   private freezeStatusFxCooldown = 0
@@ -210,6 +213,7 @@ export class Enemy extends Actor {
     this.kind = kind
     this.isSummonerReinforcement = isSummonerReinforcement
     this.formationPosition = formationPosition
+    this.setActualPosition(formationPosition.x, formationPosition.y, formationPosition.z, true)
     this.saveId = options.saveId ?? `enemy-${Enemy.nextSaveId}`
     Enemy.advanceSaveIdCounter(this.saveId)
     this.attackInterval =
@@ -240,6 +244,10 @@ export class Enemy extends Actor {
     this.summonIntervalSeconds = options.summonIntervalSeconds ?? 6.2
     this.bubbleFreezeIntervalSeconds = 12
     this.bubbleFreezeDurationSeconds = 10
+    this.bubblesRemaining =
+      kind === 'bubbler'
+        ? Math.max(0, Math.min(MAX_BUBBLER_BUBBLES, Math.floor(options.bubblesRemaining ?? MAX_BUBBLER_BUBBLES)))
+        : 0
 
     if (kind === 'boss') {
       this.increaseMaxHealth(this.getMaxHealthValue() * 4, true)
@@ -296,7 +304,7 @@ export class Enemy extends Actor {
     this.formationPosition.x = x
     this.formationPosition.y = y
     this.formationPosition.z = z
-    this.group.position.set(x, y, z)
+    this.setActualPosition(x, y, z)
   }
 
   setSummonSpawner(spawner: SummonSpawner) {
@@ -349,6 +357,7 @@ export class Enemy extends Actor {
       attackCooldown: this.attackCooldown,
       summonCooldown: this.summonCooldown,
       summonsRemaining: this.summonsRemaining,
+      bubblesRemaining: this.kind === 'bubbler' ? this.bubblesRemaining : undefined,
       summonIntervalSeconds: this.summonIntervalSeconds,
       isSummonerReinforcement: this.isSummonerReinforcement,
       burningDamagePerSecond: this.getBurningDamagePerSecond(),
@@ -376,6 +385,12 @@ export class Enemy extends Actor {
     this.attackCooldown = Math.max(0, snapshot.attackCooldown)
     this.summonCooldown = Math.max(0, snapshot.summonCooldown)
     this.summonsRemaining = Math.max(0, Math.floor(snapshot.summonsRemaining))
+    if (this.kind === 'bubbler') {
+      this.bubblesRemaining = Math.max(
+        0,
+        Math.min(MAX_BUBBLER_BUBBLES, Math.floor(snapshot.bubblesRemaining ?? MAX_BUBBLER_BUBBLES)),
+      )
+    }
     this.applySavedStatusEffects({
       burningDamagePerSecond: snapshot.burningDamagePerSecond,
       burningRemainingSeconds: snapshot.burningRemainingSeconds,
@@ -478,7 +493,7 @@ export class Enemy extends Actor {
       }
     }
 
-    if (this.kind === 'bubbler') {
+    if (this.kind === 'bubbler' && this.bubblesRemaining > 0) {
       this.summonCooldown -= statusActionDelta
       if (this.summonCooldown <= 0) {
         this.summonCooldown = this.bubbleFreezeIntervalSeconds * (0.85 + Math.random() * 0.5)
@@ -487,6 +502,7 @@ export class Enemy extends Actor {
         if (liveTargets.length > 0) {
           const target = liveTargets[Math.floor(Math.random() * liveTargets.length)]
           target.addFreezeEffect(this.bubbleFreezeDurationSeconds, 0.95)
+          this.bubblesRemaining = Math.max(0, this.bubblesRemaining - 1)
 
           this.effectSpawner?.(
             new Particle({

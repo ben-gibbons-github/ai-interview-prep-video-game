@@ -4230,6 +4230,167 @@
   margin-top: 0.2rem;
 }
 
+.quiz-debug-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.18rem;
+}
+
+.quiz-debug-popover-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.quiz-debug-popover {
+  position: absolute;
+  top: calc(100% + 0.42rem);
+  right: 0;
+  width: min(560px, 84vw);
+  max-height: min(54vh, 420px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 90;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(56, 189, 248, 0.34);
+  background:
+    radial-gradient(circle at top right, rgba(125, 211, 252, 0.14), transparent 45%),
+    rgba(2, 6, 23, 0.96);
+  box-shadow:
+    0 18px 34px -16px rgba(2, 6, 23, 0.92),
+    inset 0 0 0 1px rgba(148, 163, 184, 0.12);
+  pointer-events: auto;
+}
+
+.quiz-debug-popover-text {
+  margin: 0;
+  padding: 0.62rem 0.72rem;
+  color: #bfdbfe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.68rem;
+  line-height: 1.36;
+  white-space: pre-wrap;
+}
+
+.quiz-debug-cadence-section {
+  padding: 0 0.72rem 0.7rem;
+}
+
+.quiz-debug-cadence-heading {
+  margin: 0 0 0.4rem;
+  color: #dbeafe;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.quiz-debug-cadence-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.36rem;
+}
+
+.quiz-debug-cadence-list-deferred {
+  align-items: flex-start;
+}
+
+.quiz-debug-cadence-empty {
+  color: #93c5fd;
+  font-size: 0.66rem;
+}
+
+.quiz-cadence-type-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.16rem 0.45rem;
+  font-size: 0.63rem;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.quiz-cadence-type-badge.is-current {
+  box-shadow: 0 0 0 1px rgba(248, 250, 252, 0.38);
+}
+
+.quiz-cadence-type-title {
+  border-color: rgba(251, 191, 36, 0.7);
+  background: rgba(146, 64, 14, 0.33);
+  color: #fef3c7;
+}
+
+.quiz-cadence-type-ordering {
+  border-color: rgba(129, 140, 248, 0.7);
+  background: rgba(49, 46, 129, 0.38);
+  color: #e0e7ff;
+}
+
+.quiz-cadence-type-matching {
+  border-color: rgba(244, 114, 182, 0.72);
+  background: rgba(131, 24, 67, 0.38);
+  color: #fce7f3;
+}
+
+.quiz-cadence-type-system-design {
+  border-color: rgba(45, 212, 191, 0.72);
+  background: rgba(17, 94, 89, 0.38);
+  color: #ccfbf1;
+}
+
+.quiz-cadence-type-multi-section {
+  border-color: rgba(59, 130, 246, 0.72);
+  background: rgba(30, 58, 138, 0.4);
+  color: #dbeafe;
+}
+
+.quiz-cadence-type-raw-coding {
+  border-color: rgba(251, 113, 133, 0.72);
+  background: rgba(159, 18, 57, 0.36);
+  color: #ffe4e6;
+}
+
+.quiz-cadence-type-default {
+  border-color: rgba(148, 163, 184, 0.44);
+  background: rgba(30, 41, 59, 0.5);
+  color: #cbd5e1;
+}
+
+.quiz-debug-cadence-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.quiz-debug-cadence-progress-row {
+  display: grid;
+  grid-template-columns: minmax(140px, auto) 54px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.46rem;
+}
+
+.quiz-debug-cadence-progress-value {
+  color: #bfdbfe;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.63rem;
+}
+
+.quiz-debug-cadence-availability-yes,
+.quiz-debug-cadence-availability-no {
+  font-size: 0.63rem;
+  line-height: 1.25;
+}
+
+.quiz-debug-cadence-availability-yes {
+  color: #86efac;
+}
+
+.quiz-debug-cadence-availability-no {
+  color: #fecaca;
+}
+
 .quiz-timeout-card {
   display: flex;
   flex-direction: column;
@@ -6268,6 +6429,31 @@
   border-color: rgba(153, 246, 228, 0.95);
 }
 
+.tiny-github-link {
+  position: fixed;
+  right: 0.5rem;
+  bottom: 0.4rem;
+  z-index: 120;
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  color: rgba(224, 242, 254, 0.9);
+  text-decoration: none;
+  opacity: 0.94;
+  padding: 0.08rem 0.34rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: rgba(2, 6, 23, 0.64);
+  backdrop-filter: blur(4px);
+  transition: color 120ms ease, opacity 120ms ease, border-color 120ms ease;
+}
+
+.tiny-github-link:hover,
+.tiny-github-link:focus-visible {
+  color: rgba(255, 255, 255, 0.98);
+  opacity: 1;
+  border-color: rgba(125, 211, 252, 0.72);
+}
+
 @media (max-width: 860px) {
   .webgl-root {
     grid-template-rows: minmax(190px, 30vh) minmax(360px, 1fr);
@@ -6348,6 +6534,12 @@
   .artifact-icon-tooltip-panel {
     width: min(260px, 74vw);
     font-size: 0.58rem;
+  }
+
+  .tiny-github-link {
+    right: 0.35rem;
+    bottom: 0.24rem;
+    font-size: 0.56rem;
   }
 }
 

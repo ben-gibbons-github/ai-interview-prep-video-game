@@ -231,18 +231,47 @@ function sampleStoriesForCombinedOrdering(stories: ParsedStarStory[], count: num
   return shuffleItems(candidates).slice(0, count)
 }
 
-function buildCombinedOrderingItems(stories: ParsedStarStory[]): string[] {
-  const combined: string[] = []
+function generatePermutations(values: number[]): number[][] {
+  if (values.length <= 1) {
+    return [values.slice()]
+  }
 
-  for (const story of stories) {
-    const storySentences = buildFullStoryOrderedSentences(story)
+  const permutations: number[][] = []
 
-    for (const sentence of storySentences) {
-      combined.push(sentence)
+  for (let index = 0; index < values.length; index += 1) {
+    const fixedValue = values[index]
+    const remainder = values.slice(0, index).concat(values.slice(index + 1))
+    const remainderPermutations = generatePermutations(remainder)
+
+    for (const remainderPermutation of remainderPermutations) {
+      permutations.push([fixedValue, ...remainderPermutation])
     }
   }
 
-  return combined
+  return permutations
+}
+
+function buildCombinedOrderingValidOrders(storySentenceGroups: string[][]): number[][] {
+  const blockRanges = storySentenceGroups.map((sentences) => {
+    return Array.from({ length: sentences.length }, (_, index) => index)
+  })
+
+  let runningOffset = 0
+  for (let groupIndex = 0; groupIndex < blockRanges.length; groupIndex += 1) {
+    blockRanges[groupIndex] = blockRanges[groupIndex].map((index) => index + runningOffset)
+    runningOffset += blockRanges[groupIndex].length
+  }
+
+  const blockOrderIndices = Array.from({ length: storySentenceGroups.length }, (_, index) => index)
+  const blockPermutations = generatePermutations(blockOrderIndices)
+
+  return blockPermutations.map((permutation) => {
+    const flattened: number[] = []
+    for (const blockIndex of permutation) {
+      flattened.push(...blockRanges[blockIndex])
+    }
+    return flattened
+  })
 }
 
 function detectSectionHeading(line: string): { key: StarStorySectionKey; remainder: string } | null {
@@ -703,22 +732,25 @@ export function buildStarStoryQuestionBank(
 
   const sampledVeryHardStories = sampleStoriesForCombinedOrdering(parsedStories, 2)
   if (sampledVeryHardStories.length === 2) {
-    const combinedVeryHardItems = buildCombinedOrderingItems(sampledVeryHardStories)
+    const veryHardStorySentenceGroups = sampledVeryHardStories.map((story) => buildFullStoryOrderedSentences(story))
+    const combinedVeryHardItems = veryHardStorySentenceGroups.flat()
+    const combinedVeryHardValidOrders = buildCombinedOrderingValidOrders(veryHardStorySentenceGroups)
     if (combinedVeryHardItems.length >= STAR_ORDERING_MIN_ITEMS) {
       questions.push({
         id: `star-story-very-hard-dual-story-ordering-${sampledVeryHardStories.map((story) => story.storyId).join('-')}`,
         prompt:
           'Very Hard STAR Ordering\n\n' +
-          'Rebuild this combined timeline by placing every sentence from one full story first, then every sentence from the second story, each in original order.',
+          'Rebuild this combined timeline by grouping full stories together, each in original order. Story blocks can be arranged in any sequence.',
         options: ['Correct order submitted', 'Incorrect order submitted'],
         correctIndex: 0,
         difficulty: promoteStarStoryDifficulty('veryHard', forceHardStart),
         correctExplanation:
-          `Correct order is Story A (${sampledVeryHardStories[0].fileTitle}) fully, then Story B (${sampledVeryHardStories[1].fileTitle}) fully, preserving each story's internal order.`,
+          `Accept any order of complete story blocks (${sampledVeryHardStories[0].fileTitle} and ${sampledVeryHardStories[1].fileTitle}), while preserving each story's internal sentence order.`,
         orderItems: {
-          helperText: 'Group and order all sentences so one full story comes first, then the second full story.',
+          helperText: 'Group sentences into complete stories; each story must stay internally ordered, but story blocks can be in any order.',
           items: combinedVeryHardItems,
           correctOrder: Array.from({ length: combinedVeryHardItems.length }, (_, index) => index),
+          validOrders: combinedVeryHardValidOrders,
         },
       })
     }
@@ -726,22 +758,25 @@ export function buildStarStoryQuestionBank(
 
   const sampledInsanelyHardStories = sampleStoriesForCombinedOrdering(parsedStories, 4)
   if (sampledInsanelyHardStories.length === 4) {
-    const combinedInsanelyHardItems = buildCombinedOrderingItems(sampledInsanelyHardStories)
+    const insanelyHardStorySentenceGroups = sampledInsanelyHardStories.map((story) => buildFullStoryOrderedSentences(story))
+    const combinedInsanelyHardItems = insanelyHardStorySentenceGroups.flat()
+    const combinedInsanelyHardValidOrders = buildCombinedOrderingValidOrders(insanelyHardStorySentenceGroups)
     if (combinedInsanelyHardItems.length >= STAR_ORDERING_MIN_ITEMS) {
       questions.push({
         id: `star-story-insanely-hard-quad-story-ordering-${sampledInsanelyHardStories.map((story) => story.storyId).join('-')}`,
         prompt:
           'Insanely Hard STAR Ordering\n\n' +
-          'Rebuild this mega timeline by placing four full stories back-to-back, each in original order.',
+          'Rebuild this mega timeline by grouping complete stories in internal order. Story-block order can be any permutation.',
         options: ['Correct order submitted', 'Incorrect order submitted'],
         correctIndex: 0,
         difficulty: promoteStarStoryDifficulty('insanelyHard', forceHardStart),
         correctExplanation:
-          `Correct order is Story A (${sampledInsanelyHardStories[0].fileTitle}), then Story B (${sampledInsanelyHardStories[1].fileTitle}), then Story C (${sampledInsanelyHardStories[2].fileTitle}), then Story D (${sampledInsanelyHardStories[3].fileTitle}), each preserving internal sentence order.`,
+          `Accept any permutation of complete story blocks (${sampledInsanelyHardStories.map((story) => story.fileTitle).join(', ')}), while preserving each story's internal sentence order.`,
         orderItems: {
-          helperText: 'Infer the four stories from content and order them as four complete story blocks.',
+          helperText: 'Infer complete story blocks and keep each story internally ordered; block order can be any permutation.',
           items: combinedInsanelyHardItems,
           correctOrder: Array.from({ length: combinedInsanelyHardItems.length }, (_, index) => index),
+          validOrders: combinedInsanelyHardValidOrders,
         },
       })
     }

@@ -80,6 +80,7 @@ export interface EnemySaveState {
   attackCooldown: number
   summonCooldown: number
   summonsRemaining: number
+  bubblesRemaining?: number
   summonIntervalSeconds: number
   burningDamagePerSecond?: number
   burningRemainingSeconds?: number
@@ -228,6 +229,10 @@ function normalizeEnemySaveState(enemyState: EnemySaveState): EnemySaveState {
   return {
     ...enemyState,
     isSummonerReinforcement: inferredSummonerReinforcement,
+    bubblesRemaining:
+      enemyState.kind === 'bubbler'
+        ? Math.max(0, Math.min(10, Math.floor(enemyState.bubblesRemaining ?? 10)))
+        : undefined,
     frozenRemainingSeconds: Math.max(0, Math.floor(enemyState.frozenRemainingSeconds ?? 0)),
     frozenIntensity: Math.max(0, Math.min(0.95, enemyState.frozenIntensity ?? 0)),
   }
@@ -839,6 +844,10 @@ function isValidSaveState(value: unknown): value is GameSaveState {
         typeof snapshot.maxHealth === 'number' &&
         Number.isFinite(snapshot.maxHealth) &&
         (snapshot.isSummonerReinforcement === undefined || typeof snapshot.isSummonerReinforcement === 'boolean') &&
+        (snapshot.bubblesRemaining === undefined ||
+          (typeof snapshot.bubblesRemaining === 'number' &&
+            Number.isFinite(snapshot.bubblesRemaining) &&
+            snapshot.bubblesRemaining >= 0)) &&
         (snapshot.burningDamagePerSecond === undefined ||
           (typeof snapshot.burningDamagePerSecond === 'number' &&
             Number.isFinite(snapshot.burningDamagePerSecond) &&

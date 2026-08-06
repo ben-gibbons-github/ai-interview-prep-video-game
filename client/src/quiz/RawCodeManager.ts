@@ -1,6 +1,15 @@
 import type { QuizDifficulty, QuizQuestion, RawCodingDifficulty } from './QuizQuestionManager'
 
-export type QuizQuestionKind = 'multipleChoice' | 'rawCoding' | 'validList' | 'orderItems' | 'capacity' | 'systemDesign' | 'multiSectionSystemDesign' | 'transcription'
+export type QuizQuestionKind =
+  | 'multipleChoice'
+  | 'rawCoding'
+  | 'validList'
+  | 'orderItems'
+  | 'leetcodePatternType'
+  | 'capacity'
+  | 'systemDesign'
+  | 'multiSectionSystemDesign'
+  | 'transcription'
 export type RawCodingLanguageId = 'javascript' | 'python' | 'java' | 'cpp' | 'csharp' | 'go'
 
 export interface RawCodingLanguageTemplate {
@@ -616,6 +625,43 @@ function buildHardTierRotationOrder(askedQuestionIds: Set<string>): RawCodingDif
   ]
 }
 
+function recycleSeenRawCodingIdsIfExhausted(
+  askedQuestionIds: Set<string>,
+  rawCodingDifficultyOrder: RawCodingDifficulty[],
+  allowedSources: {
+    LiveCodeStyle: boolean
+    frontend: boolean
+    backend: boolean
+    javascript: boolean
+    python: boolean
+    ai: boolean
+    react: boolean
+  },
+  allowedLiveCodeTopics: LiveCodeTopicFlags,
+): boolean {
+  const eligibleQuestionIds = new Set<string>()
+
+  for (const difficulty of rawCodingDifficultyOrder) {
+    const pool = getEligibleRawCodingQuestions(difficulty, allowedSources, allowedLiveCodeTopics)
+    pool.forEach((question) => eligibleQuestionIds.add(question.id))
+  }
+
+  if (eligibleQuestionIds.size === 0) {
+    return false
+  }
+
+  const allEligibleAlreadySeen = Array.from(eligibleQuestionIds).every((questionId) => askedQuestionIds.has(questionId))
+  if (!allEligibleAlreadySeen) {
+    return false
+  }
+
+  eligibleQuestionIds.forEach((questionId) => {
+    askedQuestionIds.delete(questionId)
+  })
+
+  return true
+}
+
 export function getNextRawCodingQuestion({
   questionPosition,
   fallbackOrder,
@@ -625,7 +671,7 @@ export function getNextRawCodingQuestion({
   allowedSources,
   allowedLiveCodeTopics,
 }: NextRawCodingQuestionParams): QuizQuestion | null {
-  if (!forcePick && (questionPosition - 1) % 5 !== 0) {
+  if (!forcePick && (questionPosition - 1) % 6 !== 0) {
     return null
   }
 
@@ -641,6 +687,13 @@ export function getNextRawCodingQuestion({
 
   const effectiveAllowedSources = allowedSources ?? RAW_CODING_SOURCE_FLAGS
   const effectiveAllowedLiveCodeTopics = allowedLiveCodeTopics ?? DEFAULT_ALLOWED_LiveCode_TOPICS
+
+  recycleSeenRawCodingIdsIfExhausted(
+    askedQuestionIds,
+    rawCodingDifficultyOrder,
+    effectiveAllowedSources,
+    effectiveAllowedLiveCodeTopics,
+  )
 
   for (const difficulty of rawCodingDifficultyOrder) {
     const pool = getEligibleRawCodingQuestions(difficulty, effectiveAllowedSources, effectiveAllowedLiveCodeTopics)

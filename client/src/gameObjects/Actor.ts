@@ -78,6 +78,7 @@ function createFrozenStatusTexture() {
 export abstract class Actor extends GameObject {
   private static readonly GLOBAL_BURN_DAMAGE_MULTIPLIER = 0.25
   private static incomingDamageMultiplier = 0.7
+  private static readonly VISUAL_POSITION_MOVE_SPEED = 0.1
   private readonly sprite: THREE.Sprite
   private readonly hitFlashSprite: THREE.Sprite
   private readonly frozenBubbleSprite: THREE.Sprite
@@ -106,6 +107,7 @@ export abstract class Actor extends GameObject {
   private readonly freezeStatusColor = new THREE.Color(0.56, 0.86, 1)
   private readonly mixedStatusColor = new THREE.Color(1, 1, 1)
   private healthbarStatusMode: 'none' | 'burning' | 'frozen' = 'none'
+  private readonly actualPosition = new THREE.Vector3()
 
   protected constructor(name: string, options: ActorOptions) {
     super(name)
@@ -156,6 +158,10 @@ export abstract class Actor extends GameObject {
     })
     this.redrawHealthbar()
 
+    const initialPosition = options.motion.position(0)
+    this.actualPosition.set(initialPosition[0], initialPosition[1], initialPosition[2])
+    this.group.position.copy(this.actualPosition)
+
     this.update = (_delta, elapsed) => {
       if (this.dead) {
         this.deathElapsed += _delta
@@ -183,7 +189,25 @@ export abstract class Actor extends GameObject {
         return
       }
 
-      this.group.position.set(...options.motion.position(elapsed))
+      const nextActualPosition = options.motion.position(elapsed)
+      this.actualPosition.set(nextActualPosition[0], nextActualPosition[1], nextActualPosition[2])
+
+      const deltaX = this.actualPosition.x - this.group.position.x
+      const deltaY = this.actualPosition.y - this.group.position.y
+      const deltaZ = this.actualPosition.z - this.group.position.z
+      const distanceToTarget = Math.hypot(deltaX, deltaY, deltaZ)
+      if (distanceToTarget > 0) {
+        const maxStep = Actor.VISUAL_POSITION_MOVE_SPEED * _delta
+        if (distanceToTarget <= maxStep) {
+          this.group.position.copy(this.actualPosition)
+        } else {
+          const moveRatio = maxStep / distanceToTarget
+          this.group.position.x += deltaX * moveRatio
+          this.group.position.y += deltaY * moveRatio
+          this.group.position.z += deltaZ * moveRatio
+        }
+      }
+
       this.group.rotation.z = options.motion.rotationZ?.(elapsed) ?? 0
 
       if (this.hitShakeRemaining > 0) {
@@ -459,6 +483,17 @@ export abstract class Actor extends GameObject {
 
   isAlive() {
     return !this.dead
+  }
+
+  getActualPosition() {
+    return this.actualPosition
+  }
+
+  protected setActualPosition(x: number, y: number, z: number, syncVisualPosition = false) {
+    this.actualPosition.set(x, y, z)
+    if (syncVisualPosition) {
+      this.group.position.set(x, y, z)
+    }
   }
 
   protected getStyle() {

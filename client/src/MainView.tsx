@@ -281,6 +281,7 @@ const DEFAULT_QUIZ_WORLD_CONTROLS: QuizWorldControls = {
   tickFreeze: () => {},
   handleCombatQuizVisibility: () => true,
   grantRoundStartFreeze: () => {},
+  queueLifeLossReorderQuestion: () => {},
   resetQuizState: () => {},
   getSaveState: () => ({
     freezeSecondsRemaining: 0,
@@ -834,7 +835,7 @@ export function MainView() {
         questionNukeSaveSnapshotProviderRef.current = provider
       },
       onPlayerLifeLost: (remainingLives) => {
-        quizWorldControlsRef.current.grantRoundStartFreeze()
+        quizWorldControlsRef.current.queueLifeLossReorderQuestion()
         setLifeLossDialogLives(remainingLives)
       },
       onRunEnded: (summary) => {
@@ -1885,6 +1886,16 @@ export function MainView() {
           }}
         />
       ) : null}
+
+      <a
+        className="tiny-github-link"
+        href="https://github.com/ben-gibbons-github/ai-interview-prep-video-game"
+        target="_blank"
+        rel="noreferrer"
+        aria-label="Project GitHub repository"
+      >
+        GitHub
+      </a>
 
       <OverlayStack overlays={overlays} onDismiss={dismissOverlay} />
     </div>

@@ -11,6 +11,8 @@ import {
   type ChaosArtifactId,
 } from './RunLaunchConfig'
 
+const DEBUG_UNLOCK_TWENTY_DIFFICULTIES_ENABLED = import.meta.env.VITE_DEBUG_UNLOCK_20_DIFFICULTY_LEVELS_ENABLED !== 'false'
+
 interface ArtifactIconProps {
   id: string
   name: string
@@ -269,20 +271,22 @@ export function RunLaunchSetup({
           <div className="star-story-setup-badge">New</div>
         </header>
 
-        <div className="star-story-setup-toolbar">
-          <button
-            type="button"
-            className="star-story-inline-button"
-            onClick={() => {
-              setDebugUnlockedTwentyDifficulties(true)
-              setSelectedDifficulty(19)
-            }}
-            disabled={debugUnlockedTwentyDifficulties}
-          >
-            Debug unlock 20 difficulty levels
-          </button>
-          {debugUnlockedTwentyDifficulties ? <span className="run-launch-muted">Temporary session unlock active.</span> : null}
-        </div>
+        {DEBUG_UNLOCK_TWENTY_DIFFICULTIES_ENABLED ? (
+          <div className="star-story-setup-toolbar">
+            <button
+              type="button"
+              className="star-story-inline-button"
+              onClick={() => {
+                setDebugUnlockedTwentyDifficulties(true)
+                setSelectedDifficulty(19)
+              }}
+              disabled={debugUnlockedTwentyDifficulties}
+            >
+              Debug unlock 20 difficulty levels
+            </button>
+            {debugUnlockedTwentyDifficulties ? <span className="run-launch-muted">Temporary session unlock active.</span> : null}
+          </div>
+        ) : null}
 
         <p className="star-story-setup-copy">
           Select difficulty and starting artifacts for this run. Chaos artifacts roll separately and can radically change the run.

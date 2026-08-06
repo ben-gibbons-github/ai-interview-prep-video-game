@@ -7,6 +7,7 @@ import {
 import {
   getActiveQuizFocusFilters,
   getQuizQuestionById,
+  getQuizSelectionDebugSnapshot,
   getTranscriptionRotationState,
   getCorrectQuizExplanation,
   getMultiSectionSystemDesignIncorrectExplanation,
@@ -20,6 +21,7 @@ import {
   type QuizIncorrectExplanation,
   type QuizQuestion,
   type QuizQuestionKind,
+  type QuizSelectionDebugSnapshot,
   type TranscriptionAttemptProgressByProblem,
 } from '../quiz/QuizQuestionManager'
 import {
@@ -52,7 +54,6 @@ import {
 const ROUND_FREEZE_SECONDS = 60
 // const ROUND_FREEZE_SECONDS = 0
 const INITIAL_EASY_DIFFICULTY_GRACE_QUESTIONS = 5
-const FREEZE_SECONDS_PER_CORRECT_ANSWER = 1
 const GOLD_PER_CORRECT_ANSWER = 2
 const SCORE_PER_CORRECT_ANSWER_BASE = 5
 const MAX_HEALTH_PER_CORRECT_ANSWER = 5
@@ -66,6 +67,45 @@ const CORRECT_ANSWERS_LIFE_INCREMENT = 5
 const ROUND_QUIZ_BUFF_TYPES: RoundQuizBuffType[] = ['damage', 'fireRate', 'health', 'shield']
 const STAR_STORY_QUESTION_ID_PREFIX = 'star-story-'
 const MULTI_SECTION_SYSTEM_DESIGN_REWARD_MULTIPLIER = 4
+const LIFE_LOSS_REORDER_QUESTION_ID = 'life-loss-system-design-reorder'
+
+function createLifeLossReorderQuestion(): QuizQuestion {
+  const items = [
+    'Clarify Core Requirements: Define 2-3 key functional features to keep the scope realistic.',
+    'Establish Non-Functional Requirements: Define target latency, availability vs. consistency (CAP theorem), durability, and SLA expectations.',
+    'Run Back-of-the-Envelope Estimates: Quantify expected Read/Write QPS, peak throughput, bandwidth requirements, and multi-year storage needs.',
+    'Define API Specifications: Outline key request/response payloads, HTTP methods, or RPC endpoints.',
+    'Select Data Storage Paradigms: Choose appropriate database models (Relational, Key-Value, Document, Time-Series) based on access patterns.',
+    'Map High-Level Data Flow: Sketch the core end-to-end architecture connecting clients, load balancers, application servers, and databases.',
+    'Implement Caching & CDN Strategies: Reduce database pressure and latency using distributed caching (e.g., Redis) and static edge storage.',
+    'Address Data Partitioning & Scaling: Design sharding logic, consistent hashing rings, and read-replica replication models to scale horizontally.',
+    'Decouple Workloads via Async Processing: Use message queues or event streams (e.g., Kafka, RabbitMQ) to handle heavy write traffic asynchronously.',
+    'Identify SPOFs & Fault Tolerance: Walk through single points of failure, failover mechanisms, distributed tracing, and monitoring strategies.',
+  ]
+
+  return {
+    id: LIFE_LOSS_REORDER_QUESTION_ID,
+    prompt:
+      'Life Loss Recovery Drill\n\n' +
+      'Re-order these system design steps into the correct interview flow from first to last.',
+    options: ['Correct order submitted', 'Incorrect order submitted'],
+    correctIndex: 0,
+    difficulty: 'easy',
+    kind: 'orderItems',
+    correctExplanation:
+      'Correct order: requirements -> constraints -> estimation -> APIs -> storage -> high-level architecture -> caching/CDN -> partitioning/scaling -> async workloads -> fault tolerance.',
+    orderItems: {
+      helperText:
+        'Drag each step into the canonical system design sequence from first to last.',
+      items,
+      correctOrder: Array.from({ length: items.length }, (_, index) => index),
+    },
+  }
+}
+
+function isLifeLossReorderQuestionId(questionId: string): boolean {
+  return questionId.trim() === LIFE_LOSS_REORDER_QUESTION_ID
+}
 
 function createEmptyDifficultyBreakdown(): RunQuestionDifficultyBreakdown {
   return {
@@ -96,6 +136,10 @@ export function getQuestionTypeForTracking(question: QuizQuestion): QuestionType
 
   if (question.kind === 'orderItems') {
     return 'orderItems'
+  }
+
+  if (question.kind === 'leetcodePatternType') {
+    return 'multipleChoice'
   }
 
   if (question.kind === 'capacity') {
@@ -292,6 +336,161 @@ function isOrderItemsQuestion(question: QuizQuestion | null): boolean {
   return question?.kind === 'orderItems' && question.orderItems !== undefined
 }
 
+function isSameOrder(left: number[], right: number[]): boolean {
+  return left.length === right.length && left.every((value, index) => value === right[index])
+}
+
+function isValidOrderPermutation(order: number[], itemCount: number): boolean {
+  if (!Array.isArray(order) || order.length !== itemCount) {
+    return false
+  }
+
+  return (
+    order.every((index) => typeof index === 'number' && Number.isInteger(index) && index >= 0 && index < itemCount) &&
+    new Set(order).size === itemCount
+  )
+}
+
+function getAcceptedOrderItemsOrders(orderItems: { items: string[]; correctOrder: number[]; validOrders?: number[][] }): number[][] {
+  const itemCount = orderItems.items.length
+  const candidateValidOrders = Array.isArray(orderItems.validOrders)
+    ? orderItems.validOrders.filter((candidateOrder) => isValidOrderPermutation(candidateOrder, itemCount))
+    : []
+
+  if (candidateValidOrders.length > 0) {
+    return candidateValidOrders
+  }
+
+  if (isValidOrderPermutation(orderItems.correctOrder, itemCount)) {
+    return [orderItems.correctOrder]
+  }
+
+  return []
+}
+
+function isStarStoryCombinedOrderingQuestion(question: QuizQuestion): boolean {
+  if (!isStarStoryOrderingQuizQuestion(question)) {
+    return false
+  }
+
+  return question.id.includes('dual-story-ordering') || question.id.includes('quad-story-ordering')
+}
+
+function generateOrderPermutations(values: number[]): number[][] {
+  if (values.length <= 1) {
+    return [values.slice()]
+  }
+
+  const permutations: number[][] = []
+
+  for (let index = 0; index < values.length; index += 1) {
+    const fixedValue = values[index]
+    const remainder = values.slice(0, index).concat(values.slice(index + 1))
+    const remainderPermutations = generateOrderPermutations(remainder)
+
+    for (const remainderPermutation of remainderPermutations) {
+      permutations.push([fixedValue, ...remainderPermutation])
+    }
+  }
+
+  return permutations
+}
+
+function inferAcceptedOrdersForStarCombinedQuestion(question: QuizQuestion): number[][] {
+  if (!question.orderItems) {
+    return []
+  }
+
+  const storyIds = Array.from(
+    new Set(question.id.match(/star-story-\d+-[a-z0-9-]+(?=-star-story-\d+-|$)/g) ?? []),
+  )
+  if (storyIds.length < 2) {
+    return []
+  }
+
+  const stories = storyIds
+    .map((storyId) => {
+      const fullOrderQuestion = getQuizQuestionById(`${storyId}-full-story-ordering`)
+      if (!fullOrderQuestion?.orderItems) {
+        return null
+      }
+
+      return {
+        storyId,
+        items: fullOrderQuestion.orderItems.items,
+      }
+    })
+    .filter((story): story is { storyId: string; items: string[] } => story !== null)
+
+  if (stories.length !== storyIds.length) {
+    return []
+  }
+
+  const combinedItems = question.orderItems.items
+  const remainingStories = [...stories]
+  const orderedStoryBlocks: Array<{ start: number; end: number }> = []
+  let cursor = 0
+
+  while (cursor < combinedItems.length && remainingStories.length > 0) {
+    const matchingStory = remainingStories.find((story) => {
+      const nextSlice = combinedItems.slice(cursor, cursor + story.items.length)
+      if (nextSlice.length !== story.items.length) {
+        return false
+      }
+
+      return story.items.every((item, index) => nextSlice[index] === item)
+    })
+
+    if (!matchingStory) {
+      return []
+    }
+
+    const blockStart = cursor
+    const blockEnd = cursor + matchingStory.items.length - 1
+    orderedStoryBlocks.push({ start: blockStart, end: blockEnd })
+    cursor = blockEnd + 1
+
+    const remainingIndex = remainingStories.findIndex((story) => story.storyId === matchingStory.storyId)
+    if (remainingIndex >= 0) {
+      remainingStories.splice(remainingIndex, 1)
+    }
+  }
+
+  if (cursor !== combinedItems.length || orderedStoryBlocks.length !== storyIds.length) {
+    return []
+  }
+
+  const blockOrderIndices = Array.from({ length: orderedStoryBlocks.length }, (_, index) => index)
+  const blockPermutations = generateOrderPermutations(blockOrderIndices)
+
+  return blockPermutations.map((permutation) => {
+    const flattened: number[] = []
+    for (const blockIndex of permutation) {
+      const block = orderedStoryBlocks[blockIndex]
+      for (let itemIndex = block.start; itemIndex <= block.end; itemIndex += 1) {
+        flattened.push(itemIndex)
+      }
+    }
+    return flattened
+  })
+}
+
+export function getAcceptedOrderItemsOrdersForQuestion(question: QuizQuestion | null): number[][] {
+  if (!question || !isOrderItemsQuestion(question) || !question.orderItems) {
+    return []
+  }
+
+  const acceptedFromMetadata = getAcceptedOrderItemsOrders(question.orderItems)
+  const hasValidOrdersInMetadata = Array.isArray(question.orderItems.validOrders) && question.orderItems.validOrders.length > 0
+
+  if (hasValidOrdersInMetadata || acceptedFromMetadata.length === 0 || !isStarStoryCombinedOrderingQuestion(question)) {
+    return acceptedFromMetadata
+  }
+
+  const inferredAcceptedOrders = inferAcceptedOrdersForStarCombinedQuestion(question)
+  return inferredAcceptedOrders.length > 0 ? inferredAcceptedOrders : acceptedFromMetadata
+}
+
 function normalizeTranscriptionAttemptsByProblem(
   value: unknown,
 ): TranscriptionAttemptProgressByProblem {
@@ -456,6 +655,7 @@ export interface QuizManagerApi {
   quizCorrectNeededForNextLife: number
   quizUpcomingBuffLabel: string | null
   priorityQuestionIds: string[]
+  quizSelectionDebugSnapshot: QuizSelectionDebugSnapshot
   handleQuizAnswer: (selectedIndex: number, options?: { isSkip?: boolean; skipStats?: boolean; skipRewardDialog?: boolean }) => void
   handleValidListAnswer: (
     selectedIndices: number[],
@@ -482,6 +682,7 @@ export interface QuizManagerApi {
   tickFreeze: (delta: number) => void
   handleCombatQuizVisibility: (shouldShowQuiz: boolean) => boolean
   grantRoundStartFreeze: () => void
+  queueLifeLossReorderQuestion: () => void
   getSaveState: () => QuizSaveState
   restoreSaveState: (saveState: QuizSaveState | null | undefined) => void
   resetQuizState: () => void
@@ -673,15 +874,19 @@ export function useQuizManager({
     let nextPriorityQuestion: QuizQuestion | null = null
 
     queueSnapshot.forEach((questionId) => {
-      const candidate = getQuizQuestionById(questionId)
+      const candidate = isLifeLossReorderQuestionId(questionId)
+        ? createLifeLossReorderQuestion()
+        : getQuizQuestionById(questionId)
       if (!candidate) {
         return
       }
 
+      const isLifeLossReorderQuestion = isLifeLossReorderQuestionId(candidate.id)
+
       const isTranscriptionQuestion =
         candidate.kind === 'transcription' && candidate.transcriptionQuestion !== undefined
 
-      if (micOnlyModeEnabled && !isTranscriptionQuestion) {
+      if (micOnlyModeEnabled && !isTranscriptionQuestion && !isLifeLossReorderQuestion) {
         // In mic-only mode, keep all non-transcription priority questions stashed for later.
         remainingQuestionIds.push(candidate.id)
         return
@@ -691,7 +896,7 @@ export function useQuizManager({
         return
       }
 
-      if (!nextPriorityQuestion && isQuizQuestionAllowedByCurrentFocus(candidate)) {
+      if (!nextPriorityQuestion && (isLifeLossReorderQuestion || isQuizQuestionAllowedByCurrentFocus(candidate))) {
         nextPriorityQuestion = candidate
         askedQuizQuestionIdsRef.current.add(candidate.id)
         return
@@ -703,6 +908,10 @@ export function useQuizManager({
     setPriorityQuestionQueue(remainingQuestionIds)
     return nextPriorityQuestion
   }, [setPriorityQuestionQueue])
+
+  const queueLifeLossReorderQuestion = useCallback(() => {
+    enqueuePriorityQuestionId(LIFE_LOSS_REORDER_QUESTION_ID, { prepend: true })
+  }, [enqueuePriorityQuestionId])
 
   const handleAdvanceQuizQuestion = useCallback((correctAnswers: number) => {
     const queuedPriorityQuestion = dequeueNextAvailablePriorityQuestion()
@@ -760,6 +969,16 @@ export function useQuizManager({
     lastQuestionKindRef.current = randomizedQuestion.kind ?? 'multipleChoice'
     return randomizedQuestion
   }, [dequeueNextAvailablePriorityQuestion, getCorrectAnswersForProgression, questionDifficultyOffset])
+
+  const effectiveCorrectAnswersForDebug = Math.max(
+    0,
+    getCorrectAnswersForProgression(quizCorrectAnswers) + questionDifficultyOffset,
+  )
+  const quizSelectionDebugSnapshot = getQuizSelectionDebugSnapshot(
+    effectiveCorrectAnswersForDebug,
+    askedQuizQuestionIdsRef.current,
+    playerRef.current?.getRawCodingQuestionFrequencyMultiplier() ?? 1,
+  )
 
   useEffect(() => {
     if (!quizQuestion) {
@@ -949,9 +1168,6 @@ export function useQuizManager({
     const streakGoldReward = streakBaseGoldReward > 0 ? player.addGold(streakBaseGoldReward) : 0
     const totalGoldReward = questionGoldReward + streakGoldReward
 
-    if (!initialGraceQuestionModeActiveRef.current) {
-      setFreezeRemaining(quizFreezeRemainingRef.current + FREEZE_SECONDS_PER_CORRECT_ANSWER)
-    }
     player.triggerCorrectAnswerArtifactEffects(question.kind)
 
     return {
@@ -1468,6 +1684,7 @@ export function useQuizManager({
       }
 
       const expectedOrder = orderItems.correctOrder
+      const acceptedOrders = getAcceptedOrderItemsOrdersForQuestion(quizQuestion)
       const selectedOrder = [...orderedIndices].filter(
         (index) => Number.isInteger(index) && index >= 0 && index < orderItems.items.length,
       )
@@ -1479,9 +1696,7 @@ export function useQuizManager({
       }
 
       const isCorrect =
-        !isSkipSelection &&
-        selectedOrder.length === expectedOrder.length &&
-        selectedOrder.every((index, position) => index === expectedOrder[position])
+        !isSkipSelection && acceptedOrders.some((candidateOrder) => isSameOrder(selectedOrder, candidateOrder))
       const shouldTrackStats = options?.skipStats !== true
       const nextCorrectAnswers = getCorrectAnswersForProgression(
         quizCorrectAnswers + (isCorrect && shouldTrackStats ? 1 : 0),
@@ -1553,14 +1768,22 @@ export function useQuizManager({
         const expectedLabels = expectedOrder
           .map((index) => orderItems.items[index])
           .filter((item): item is string => typeof item === 'string')
+        const hasMultipleAcceptedOrders = acceptedOrders.length > 1
 
         setQuizIncorrectExplanation({
           selectedOption: selectedLabels.join(' -> '),
-          selectedReason: 'Your submitted order does not match the expected sequence from first to last.',
-          correctOption: expectedLabels.join(' -> '),
+          selectedReason: hasMultipleAcceptedOrders
+            ? 'Your submission must match one of the accepted complete orderings.'
+            : 'Your submitted order does not match the expected sequence from first to last.',
+          correctOption: hasMultipleAcceptedOrders
+            ? expectedLabels.join(' | ')
+            : expectedLabels.join(' -> '),
           correctReason:
-            quizQuestion.correctExplanation ??
-            'The correct answer is the exact ordered sequence, not just the same items in a different arrangement.',
+            hasMultipleAcceptedOrders
+              ? (quizQuestion.correctExplanation ??
+                'Multiple full orders are accepted. Preserve each required in-story sequence while arranging story blocks.')
+              : (quizQuestion.correctExplanation ??
+                'The correct answer is the exact ordered sequence, not just the same items in a different arrangement.'),
         })
 
         postOverlay({
@@ -2437,6 +2660,7 @@ export function useQuizManager({
     quizCorrectNeededForNextLife,
     quizUpcomingBuffLabel,
     priorityQuestionIds,
+    quizSelectionDebugSnapshot,
     handleQuizAnswer,
     handleValidListAnswer,
     handleOrderItemsAnswer,
@@ -2451,6 +2675,7 @@ export function useQuizManager({
     tickFreeze,
     handleCombatQuizVisibility,
     grantRoundStartFreeze,
+    queueLifeLossReorderQuestion,
     getSaveState,
     restoreSaveState,
     resetQuizState,

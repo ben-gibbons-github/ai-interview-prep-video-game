@@ -149,7 +149,7 @@ export class AlliedFighter extends Actor {
     this.homePosition.x = x
     this.homePosition.y = y
     this.homePosition.z = z
-    this.group.position.set(x, y, z)
+    this.setActualPosition(x, y, z)
   }
 
   setFormationPosition(x: number, y: number, z: number) {
