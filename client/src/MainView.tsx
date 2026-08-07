@@ -84,6 +84,27 @@ const STAR_VOICE_PROGRESS_TARGET_PER_DIFFICULTY = 2
 const QUESTION_EXPLORER_HISTORY_STORAGE_KEY = 'system-design-game.question-explorer-history.v1'
 const STAR_WORKFLOW_DEBUG_LOGGING = true
 
+function isWebGLSupported(): boolean {
+  if (typeof window === 'undefined') {
+    return true
+  }
+
+  try {
+    const canvas = document.createElement('canvas')
+    const webgl2Context = canvas.getContext('webgl2')
+    if (webgl2Context) {
+      return true
+    }
+
+    const webglContext =
+      canvas.getContext('webgl') ??
+      canvas.getContext('experimental-webgl')
+    return webglContext !== null
+  } catch {
+    return false
+  }
+}
+
 function loadQuestionExplorerSeenQuestionIds(): string[] {
   if (typeof window === 'undefined' || typeof window.localStorage === 'undefined') {
     return []
@@ -402,6 +423,7 @@ export function MainView() {
   )
   const [focusDialogOpenedFromMenu, setFocusDialogOpenedFromMenu] = useState(false)
   const [starVoiceProgressDialogOpen, setStarVoiceProgressDialogOpen] = useState(false)
+  const [webglUnsupported, setWebglUnsupported] = useState(false)
   const [lifetimeSeenQuestionIds, setLifetimeSeenQuestionIds] = useState<string[]>(
     () => loadQuestionExplorerSeenQuestionIds(),
   )
@@ -772,6 +794,10 @@ export function MainView() {
   }, [starStories])
 
   useEffect(() => {
+    setWebglUnsupported(!isWebGLSupported())
+  }, [])
+
+  useEffect(() => {
     if (!runReady) {
       trackedScoreRef.current = null
       trackedAnsweredRef.current = null
@@ -783,129 +809,141 @@ export function MainView() {
       return
     }
 
+    if (webglUnsupported) {
+      return
+    }
+
     const mount = mountRef.current
     if (!mount) {
       return
     }
 
-    const disposeWorld = mountWebGLWorld({
-      mount,
-      incomingDamageMultiplier: worldIncomingDamageMultiplier,
-      enemyDifficultyMultiplier: computeEnemyDifficultyMultiplier(runLaunchConfig.difficultyLevel),
-      runLaunchConfig,
-      playerRef,
-      waveManagerRef,
-      rewardPromptActiveRef,
-      setCurrentRound,
-      setRewardPrompt: handleRewardPromptChange,
-      syncPlayerState,
-      postOverlay,
-      tickFreeze: (delta) => {
-        if (manualPauseRef.current) {
-          return
-        }
+    let disposeWorld = () => {}
 
-        quizWorldControlsRef.current.tickFreeze(delta)
-      },
-      getIsQuizPaused: () => {
-        return manualPauseRef.current || quizWorldControlsRef.current.getIsQuizPaused()
-      },
-      getIsBackdropMotionPaused: () => {
-        if (manualPauseRef.current) {
-          return true
-        }
+    try {
+      disposeWorld = mountWebGLWorld({
+        mount,
+        incomingDamageMultiplier: worldIncomingDamageMultiplier,
+        enemyDifficultyMultiplier: computeEnemyDifficultyMultiplier(runLaunchConfig.difficultyLevel),
+        runLaunchConfig,
+        playerRef,
+        waveManagerRef,
+        rewardPromptActiveRef,
+        setCurrentRound,
+        setRewardPrompt: handleRewardPromptChange,
+        syncPlayerState,
+        postOverlay,
+        tickFreeze: (delta) => {
+          if (manualPauseRef.current) {
+            return
+          }
 
-        const quizSaveState = quizWorldControlsRef.current.getSaveState()
-        return (
-          quizWorldControlsRef.current.getIsQuizPaused() ||
-          quizSaveState.freezeSecondsRemaining > 0
-        )
-      },
-      handleCombatQuizVisibility: (shouldShowQuiz) => {
-        return quizWorldControlsRef.current.handleCombatQuizVisibility(shouldShowQuiz)
-      },
-      initialSaveState: loadedSaveRef.current,
-      setEnemySaveSnapshotProvider: (provider) => {
-        enemySaveSnapshotProviderRef.current = provider
-      },
-      setAllySaveSnapshotProvider: (provider) => {
-        allySaveSnapshotProviderRef.current = provider
-      },
-      setQuestionNukeSaveSnapshotProvider: (provider) => {
-        questionNukeSaveSnapshotProviderRef.current = provider
-      },
-      onPlayerLifeLost: (remainingLives) => {
-        quizWorldControlsRef.current.queueLifeLossReorderQuestion()
-        setLifeLossDialogLives(remainingLives)
-      },
-      onRunEnded: (summary) => {
-        const quizStateAtRunEnd = quizWorldControlsRef.current.getSaveState()
-        const latestPlayerState = playerRef.current?.getStateSnapshot() ?? createInitialPlayerStateSnapshot()
-        const nextProgressPreview = updateRunLaunchProgressAfterRun(
-          runLaunchProgress,
-          runLaunchConfig.difficultyLevel,
-          summary.currentRound,
-        )
-        const unlockedDifficultyLevel =
-          nextProgressPreview.maxUnlockedDifficulty > runLaunchProgress.maxUnlockedDifficulty
-            ? nextProgressPreview.maxUnlockedDifficulty
-            : null
-        const result = recordRunInHighScoreBoard({
-          ...summary,
-          quizTotalAnswered: quizStateAtRunEnd.quizTotalAnswered,
-          quizAnsweredByDifficulty:
-            quizStateAtRunEnd.quizAnsweredByDifficulty ?? createEmptyDifficultyBreakdown(),
-        })
-        if (!result) {
-          return
-        }
+          quizWorldControlsRef.current.tickFreeze(delta)
+        },
+        getIsQuizPaused: () => {
+          return manualPauseRef.current || quizWorldControlsRef.current.getIsQuizPaused()
+        },
+        getIsBackdropMotionPaused: () => {
+          if (manualPauseRef.current) {
+            return true
+          }
 
-        setRunLaunchProgress((previous) => {
-          const nextProgress = updateRunLaunchProgressAfterRun(
-            previous,
+          const quizSaveState = quizWorldControlsRef.current.getSaveState()
+          return (
+            quizWorldControlsRef.current.getIsQuizPaused() ||
+            quizSaveState.freezeSecondsRemaining > 0
+          )
+        },
+        handleCombatQuizVisibility: (shouldShowQuiz) => {
+          return quizWorldControlsRef.current.handleCombatQuizVisibility(shouldShowQuiz)
+        },
+        initialSaveState: loadedSaveRef.current,
+        setEnemySaveSnapshotProvider: (provider) => {
+          enemySaveSnapshotProviderRef.current = provider
+        },
+        setAllySaveSnapshotProvider: (provider) => {
+          allySaveSnapshotProviderRef.current = provider
+        },
+        setQuestionNukeSaveSnapshotProvider: (provider) => {
+          questionNukeSaveSnapshotProviderRef.current = provider
+        },
+        onPlayerLifeLost: (remainingLives) => {
+          quizWorldControlsRef.current.queueLifeLossReorderQuestion()
+          setLifeLossDialogLives(remainingLives)
+        },
+        onRunEnded: (summary) => {
+          const quizStateAtRunEnd = quizWorldControlsRef.current.getSaveState()
+          const latestPlayerState = playerRef.current?.getStateSnapshot() ?? createInitialPlayerStateSnapshot()
+          const nextProgressPreview = updateRunLaunchProgressAfterRun(
+            runLaunchProgress,
             runLaunchConfig.difficultyLevel,
             summary.currentRound,
           )
-          saveRunLaunchProgress(nextProgress)
-          return nextProgress
-        })
+          const unlockedDifficultyLevel =
+            nextProgressPreview.maxUnlockedDifficulty > runLaunchProgress.maxUnlockedDifficulty
+              ? nextProgressPreview.maxUnlockedDifficulty
+              : null
+          const result = recordRunInHighScoreBoard({
+            ...summary,
+            quizTotalAnswered: quizStateAtRunEnd.quizTotalAnswered,
+            quizAnsweredByDifficulty:
+              quizStateAtRunEnd.quizAnsweredByDifficulty ?? createEmptyDifficultyBreakdown(),
+          })
+          if (!result) {
+            return
+          }
 
-        setHighScoreEntries(result.board)
-        setIsGamePaused(false)
-        setPostGameSummary({
-          run: summary,
-          unlockedDifficultyLevel,
-          runElapsedSeconds: runElapsedSecondsRef.current,
-          quizTotalAnswered: Math.max(0, Math.floor(quizStateAtRunEnd.quizTotalAnswered ?? 0)),
-          quizAnsweredByDifficulty: cloneDifficultyBreakdown(
-            quizStateAtRunEnd.quizAnsweredByDifficulty,
-          ),
-          quizAnsweredByType: cloneQuestionTypeBreakdown(quizStateAtRunEnd.quizAnsweredByType),
-          livesRemaining: Math.max(0, Math.floor(latestPlayerState.lives)),
-          goldCollected: Math.max(0, Math.floor(latestPlayerState.gold)),
-          quizScoreBonus: Math.max(0, Math.floor(latestPlayerState.quizScoreBonus)),
-          artifactsCollected: latestPlayerState.artifactIds.length,
-          currentStreak: Math.max(0, Math.floor(latestPlayerState.quizCurrentStreak)),
-        })
-        postOverlay({
-          title:
-            summary.endReason === 'victory'
-              ? 'VICTORY!'
-              : result.isNewBest
-                ? 'New High Score'
-                : 'Run Recorded',
-          message:
-            summary.endReason === 'victory'
-              ? unlockedDifficultyLevel !== null
-                ? `You cleared round 10. Difficulty unlocked: ${RUN_DIFFICULTY_LABELS[unlockedDifficultyLevel]}.`
-                : 'You cleared round 10 and finished the run in victory.'
-              : `Score ${summary.score} · ${summary.roundsCleared} rounds cleared · ${summary.enemyKills} enemies defeated · ${Math.max(0, Math.floor(quizStateAtRunEnd.quizCorrectAnswers ?? 0))} questions answered correctly.`,
-          durationMs: 3800,
-        })
-      },
-      getFieldVisualRank: () => fieldVisualRankRef.current,
-      getFieldGlowBoostKey: () => fieldGlowBoostKeyRef.current,
-    })
+          setRunLaunchProgress((previous) => {
+            const nextProgress = updateRunLaunchProgressAfterRun(
+              previous,
+              runLaunchConfig.difficultyLevel,
+              summary.currentRound,
+            )
+            saveRunLaunchProgress(nextProgress)
+            return nextProgress
+          })
+
+          setHighScoreEntries(result.board)
+          setIsGamePaused(false)
+          setPostGameSummary({
+            run: summary,
+            unlockedDifficultyLevel,
+            runElapsedSeconds: runElapsedSecondsRef.current,
+            quizTotalAnswered: Math.max(0, Math.floor(quizStateAtRunEnd.quizTotalAnswered ?? 0)),
+            quizAnsweredByDifficulty: cloneDifficultyBreakdown(
+              quizStateAtRunEnd.quizAnsweredByDifficulty,
+            ),
+            quizAnsweredByType: cloneQuestionTypeBreakdown(quizStateAtRunEnd.quizAnsweredByType),
+            livesRemaining: Math.max(0, Math.floor(latestPlayerState.lives)),
+            goldCollected: Math.max(0, Math.floor(latestPlayerState.gold)),
+            quizScoreBonus: Math.max(0, Math.floor(latestPlayerState.quizScoreBonus)),
+            artifactsCollected: latestPlayerState.artifactIds.length,
+            currentStreak: Math.max(0, Math.floor(latestPlayerState.quizCurrentStreak)),
+          })
+          postOverlay({
+            title:
+              summary.endReason === 'victory'
+                ? 'VICTORY!'
+                : result.isNewBest
+                  ? 'New High Score'
+                  : 'Run Recorded',
+            message:
+              summary.endReason === 'victory'
+                ? unlockedDifficultyLevel !== null
+                  ? `You cleared round 10. Difficulty unlocked: ${RUN_DIFFICULTY_LABELS[unlockedDifficultyLevel]}.`
+                  : 'You cleared round 10 and finished the run in victory.'
+                : `Score ${summary.score} · ${summary.roundsCleared} rounds cleared · ${summary.enemyKills} enemies defeated · ${Math.max(0, Math.floor(quizStateAtRunEnd.quizCorrectAnswers ?? 0))} questions answered correctly.`,
+            durationMs: 3800,
+          })
+        },
+        getFieldVisualRank: () => fieldVisualRankRef.current,
+        getFieldGlowBoostKey: () => fieldGlowBoostKeyRef.current,
+      })
+    } catch (error) {
+      console.warn('[MainView] WebGL world mount failed. Showing support dialog.', error)
+      setWebglUnsupported(true)
+      return
+    }
 
     return () => {
       disposeWorld()
@@ -934,6 +972,7 @@ export function MainView() {
     runLaunchConfig,
     runReady,
     syncPlayerState,
+    webglUnsupported,
     worldSessionId,
   ])
 
@@ -1865,6 +1904,34 @@ export function MainView() {
                 }}
               >
                 Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {webglUnsupported ? (
+        <div className="quiz-modal-backdrop" role="dialog" aria-modal="true" aria-label="WebGL required">
+          <div className="quiz-modal-card welcome-dialog-card">
+            <h3>WebGL is required</h3>
+            <p className="quiz-modal-copy welcome-dialog-lead">
+              This game needs WebGL to render graphics, but WebGL looks disabled in your browser right now.
+            </p>
+            <ul className="welcome-dialog-list">
+              <li>Enable Hardware Acceleration in your browser settings, then restart the browser.</li>
+              <li>Update your browser to the latest version.</li>
+              <li>Turn off extensions that block graphics features, then refresh.</li>
+              <li>If needed, try another browser or device.</li>
+            </ul>
+            <div className="post-game-actions">
+              <button
+                type="button"
+                className="quiz-next"
+                onClick={() => {
+                  setWebglUnsupported(!isWebGLSupported())
+                }}
+              >
+                Retry WebGL Check
               </button>
             </div>
           </div>
